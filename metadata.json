@@ -1,0 +1,6 @@
+{
+  "name": "Suami Siaga",
+  "description": "A postpartum-depression screening, mood-tracking, and guide companion application for husbands.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

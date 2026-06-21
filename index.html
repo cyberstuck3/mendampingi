@@ -1,0 +1,3086 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Suami Siaga - Postpartum Depression Companion</title>
+    <!-- Google Fonts: Inter & Space Grotesk -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- jsPDF library for medical PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #4A90D9;
+            --primary-dark: #3A77B8;
+            --accent: #6FCF97;
+            --accent-dark: #54b67d;
+            --bg: #FFF9F0;
+            --card: #FFFFFF;
+            --text: #333333;
+            --text-light: #6B7280;
+            --danger: #EB5757;
+            --danger-bg: #FDE8E8;
+            --warning: #F2994A;
+            --warning-bg: #FEF3C7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* Typography & Globals */
+        h1, h2, h3, h4, .brand-logo, .btn, .nav-item {
+            font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 12px;
+            line-height: 1.25;
+            letter-spacing: -0.02em;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+            letter-spacing: -0.01em;
+        }
+        h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        p {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            color: #4B5563; /* Gray-600 for softer body text readability */
+            max-width: 70ch;
+        }
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.15s;
+        }
+        a:hover {
+            color: var(--primary-dark);
+        }
+
+        /* Common Layouts & Container constraints */
+        .sidebar {
+            display: none;
+        }
+        .main-scroll {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+            scroll-behavior: smooth;
+        }
+        .content {
+            max-width: 480px; /* Mobile width constraint */
+            margin: 0 auto;
+            padding: 24px 16px 140px 16px; /* Added slight room for bottom tab bar */
+            width: 100%;
+        }
+
+        /* Navigations */
+        .nav-bottom {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--card);
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -2px 16px rgba(0,0,0,0.03);
+            z-index: 100;
+            border-top: 1px solid #E5E7EB;
+        }
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 4px;
+            color: var(--text-light);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.2s;
+            border: none;
+            background: none;
+            min-height: 48px;
+            text-align: center;
+        }
+        .nav-item .icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+            transition: transform 0.2s;
+        }
+        .nav-item.active {
+            color: var(--primary);
+        }
+        .nav-item.active .icon {
+            transform: scale(1.1);
+        }
+
+        /* Cards & Containers */
+        .card {
+            background: var(--card);
+            border-radius: 24px; /* Matches rounded-[24px] premium design */
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.01);
+            margin-bottom: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #EBF1F6; /* delicate border */
+        }
+        
+        /* Grid helpers */
+        .grid-2, .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        /* Buttons & Actions */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            min-height: 44px;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(74, 144, 217, 0.15);
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn:hover {
+            background-color: var(--primary-dark);
+            box-shadow: 0 4px 8px rgba(74, 144, 217, 0.2);
+        }
+        .btn-accent {
+            background-color: var(--accent);
+            box-shadow: 0 2px 4px rgba(111, 207, 151, 0.15);
+        }
+        .btn-accent:hover {
+            background-color: var(--accent-dark);
+            box-shadow: 0 4px 8px rgba(111, 207, 151, 0.25);
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+            box-shadow: none;
+        }
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 8px rgba(74, 144, 217, 0.15);
+        }
+        .btn-danger {
+            background-color: var(--danger);
+            box-shadow: 0 2px 4px rgba(235, 87, 87, 0.15);
+        }
+        .btn-danger:hover {
+            background-color: #C93B3B;
+            box-shadow: 0 4px 8px rgba(235, 87, 87, 0.25);
+        }
+
+        /* Ethics / Warnings / Disclaimers */
+        .disclaimer-box {
+            background-color: var(--warning-bg);
+            border: 1px solid rgba(242, 153, 74, 0.25);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 24px;
+        }
+        .disclaimer-box p {
+            margin-bottom: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #92400E;
+            text-align: left;
+            line-height: 1.5;
+        }
+        .crisis-warning {
+            background-color: var(--danger-bg);
+            border: 1px solid var(--danger);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .crisis-warning h3 {
+            color: var(--danger);
+            margin-bottom: 6px;
+            font-weight: 800;
+            font-size: 18px;
+        }
+        .crisis-warning p {
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #991B1B;
+            line-height: 1.5;
+        }
+
+        /* Forms styles */
+        input[type="text"], input[type="password"], textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14.5px;
+            margin-bottom: 16px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #F9FAFB;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            background-color: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.1);
+        }
+
+        /* EPDS Items */
+        .epds-item {
+            margin-bottom: 28px;
+            border-bottom: 1px solid #F3F4F6;
+            padding-bottom: 24px;
+        }
+        .epds-num {
+            display: inline-block;
+            background-color: var(--primary-dark);
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            text-align: center;
+            line-height: 28px;
+            font-size: 13px;
+            font-weight: 800;
+            margin-right: 10px;
+        }
+        .epds-q {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: inline-flex;
+            align-items: center;
+            color: var(--text);
+            line-height: 1.4;
+        }
+        .option-wrapper {
+            margin-bottom: 10px;
+        }
+        .epds-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: #F9FAFB;
+            border: 1.5px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 52px;
+        }
+        .epds-option input {
+            transform: scale(1.25);
+            margin-right: 12px;
+            accent-color: var(--primary);
+        }
+        .epds-option span {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            line-height: 1.4;
+        }
+        .epds-option:hover {
+            border-color: var(--primary);
+            background-color: #FFFDF9;
+        }
+        .epds-option.selected {
+            border-color: var(--primary);
+            background-color: #FFF9F0;
+            box-shadow: 0 2px 8px rgba(74, 144, 217, 0.08);
+        }
+
+        /* Support Guide Checkboxes */
+        .todo-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        .todo-item input[type="checkbox"] {
+            transform: scale(1.25);
+            margin-top: 4px;
+            accent-color: var(--accent-dark);
+            cursor: pointer;
+        }
+        .todo-item label {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.5;
+            color: #374151;
+            cursor: pointer;
+        }
+        .todo-item.checked label {
+            text-decoration: line-through;
+            color: #9CA3AF;
+            font-weight: 400;
+        }
+
+        /* Jurnal Mood Emojis & Chart */
+        .mood-btn-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .mood-select-btn {
+            flex: 1;
+            background-color: #FFFFFF;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 16px;
+            height: 64px;
+            font-size: 26px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .mood-select-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .mood-select-btn.active {
+            border-color: var(--primary);
+            background-color: #EBF4FC;
+            box-shadow: 0 4px 12px rgba(74, 144, 217, 0.12);
+        }
+
+        .father-mood-select-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .father-mood-select-btn.active {
+            border-color: var(--primary) !important;
+            background-color: #EBF4FC !important;
+            box-shadow: 0 4px 12px rgba(74, 144, 217, 0.12) !important;
+        }
+
+        /* Tabs styling */
+        .tab-btn {
+            background: transparent;
+            color: #4B5563;
+        }
+        .tab-btn.active-tab {
+            background-color: white !important;
+            color: #3A77B8 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Dynamic CSS Bar Chart */
+        .chart-container {
+            display: flex;
+            height: 180px;
+            border-bottom: 2px solid #E5E7EB;
+            padding-bottom: 8px;
+            gap: 12px;
+            margin-top: 16px;
+            align-items: flex-end;
+            justify-content: space-around;
+        }
+        .chart-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 100%;
+        }
+        .chart-bar {
+            width: 100%;
+            max-width: 32px;
+            background-color: var(--primary);
+            border-radius: 6px 6px 0 0;
+            transition: height 0.4s ease-out;
+            position: relative;
+            min-height: 8px;
+        }
+        .chart-bar.score-5 { background-color: var(--accent); }
+        .chart-bar.score-4 { background-color: #8ADEA4; }
+        .chart-bar.score-3 { background-color: #FCD34D; }
+        .chart-bar.score-2 { background-color: var(--warning); }
+        .chart-bar.score-1 { background-color: var(--danger); }
+
+        .chart-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #9CA3AF;
+            margin-top: 6px;
+            text-align: center;
+        }
+
+        /* Breathing Circle */
+        .breathing-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 220px;
+            margin: 16px 0;
+        }
+        .breath-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 16px;
+            text-align: center;
+            transition: all 4s ease-in-out;
+            box-shadow: 0 4px 20px rgba(111, 207, 151, 0.25);
+            text-transform: uppercase;
+            padding: 8px;
+            letter-spacing: 0.05em;
+        }
+        .breath-circle.inhale {
+            transform: scale(1.4);
+            background-color: var(--primary);
+            box-shadow: 0 8px 32px rgba(74, 144, 217, 0.35);
+        }
+        .breath-circle.hold {
+            transform: scale(1.4);
+            background-color: var(--primary-dark);
+            box-shadow: 0 8px 32px rgba(58, 119, 184, 0.35);
+        }
+        .breath-circle.exhale {
+            transform: scale(1.0);
+            background-color: var(--accent);
+            box-shadow: 0 4px 20px rgba(111, 207, 151, 0.25);
+        }
+        .breath-circle.hold-out {
+            transform: scale(1.0);
+            background-color: var(--accent-dark);
+            box-shadow: 0 4px 20px rgba(84, 182, 125, 0.25);
+        }
+
+        /* Tab Layout & Controls */
+        section {
+            animation: fadeIn 0.35s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Floating Chat UI & Panels */
+        .chat-fab {
+            position: fixed;
+            bottom: 74px; /* Placed above mobile navigation */
+            right: 16px;
+            width: 56px;
+            height: 56px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 20px rgba(74, 144, 217, 0.3);
+            border: none;
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.2s, background-color 0.2s;
+            min-height: 44px;
+        }
+        .chat-fab:hover {
+            transform: scale(1.06);
+            background-color: var(--primary-dark);
+        }
+        
+        /* Chat Bottom Sheet Panel on Mobile */
+        .chat-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.3);
+            z-index: 1010;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .chat-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .chat-panel {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 80vh;
+            background: var(--card);
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -8px 32px rgba(0,0,0,0.08);
+            z-index: 1020;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94);
+            overflow: hidden;
+            border-top: 1px solid #EBF1F6;
+        }
+        .chat-panel.open {
+            transform: translateY(0);
+        }
+        .chat-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .chat-header h3 {
+            color: white;
+            margin-bottom: 0;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .chat-close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-body {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background-color: #FCFBF9; /* matching warm background look */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chat-msg {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+        .msg-assistant {
+            background-color: #FFFFFF;
+            color: var(--text);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #EBF1F6;
+        }
+        .msg-user {
+            background-color: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 4px rgba(74, 144, 217, 0.1);
+        }
+        .chat-input-container {
+            padding: 12px 16px;
+            background-color: var(--card);
+            border-top: 1px solid #EBF1F6;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .chat-input-container input {
+            flex: 1;
+            margin-bottom: 0;
+            border-radius: 24px;
+            padding: 12px 16px;
+            font-size: 13.5px;
+            background-color: #F3F4F6;
+            border: none;
+        }
+        .chat-input-container input:focus {
+            background-color: #FFFFFF;
+        }
+        .chat-send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            min-height: 40px;
+            min-width: 40px;
+        }
+        .chat-send-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Settings Switch UI styling */
+        .switch-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #F9FAFB;
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #E5E7EB;
+        }
+        .switch-label {
+            font-weight: 700;
+            font-size: 14.5px;
+            color: var(--text);
+        }
+        .switch-toggle {
+            cursor: pointer;
+            transform: scale(1.3);
+            accent-color: var(--primary);
+        }
+
+        /* Pulse Animation for breathing indicator */
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        /* Helper utilities */
+        .d-none { display: none !important; }
+
+        /* -----------------------------------------
+           MEDIA QUERIES FOR TABLET (>= 768px)
+           ----------------------------------------- */
+        @media (min-width: 768px) {
+            .content {
+                max-width: 720px;
+                padding: 32px 24px 120px 24px;
+            }
+            .grid-2 {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+            }
+            h1 { font-size: 30px; }
+            h2 { font-size: 22px; }
+        }
+
+        /* -----------------------------------------
+           MEDIA QUERIES FOR LAPTOP/DESKTOP (>= 1024px)
+           ----------------------------------------- */
+        @media (min-width: 1024px) {
+            .nav-bottom {
+                display: none; /* Hide bottom tabs on desktop */
+            }
+            .sidebar {
+                display: flex;
+                flex-direction: column;
+                width: 264px;
+                background-color: var(--card);
+                border-right: 1px solid #EBF1F6;
+                padding: 0;
+                z-index: 200;
+                box-shadow: none;
+                height: 100vh;
+                flex-shrink: 0;
+            }
+            .sidebar-header {
+                padding: 24px;
+                border-bottom: 1px solid #EBF1F6;
+                margin-bottom: 16px;
+            }
+            .brand-logo {
+                font-size: 20px;
+                font-weight: 800;
+                color: var(--primary-dark);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .sidebar .nav-item {
+                flex: none;
+                flex-direction: row;
+                align-items: center;
+                padding: 12px 16px;
+                margin: 4px 16px;
+                font-size: 14.5px;
+                font-weight: 700;
+                color: #6B7280;
+                border: none;
+                text-align: left;
+                width: calc(100% - 32px);
+                min-height: 48px;
+                border-radius: 12px;
+                transition: all 0.2s;
+            }
+            .sidebar .nav-item .icon {
+                font-size: 18px;
+                margin-bottom: 0;
+                margin-right: 12px;
+            }
+            .sidebar .nav-item:hover {
+                background-color: #F9FAFB;
+                color: #374151;
+            }
+            .sidebar .nav-item.active {
+                background-color: #EBF4FC;
+                color: var(--primary);
+            }
+
+            .main-scroll {
+                height: 100vh;
+            }
+            .content {
+                max-width: 1100px;
+                padding: 40px 48px;
+                margin: 0;
+            }
+            .grid-3 {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+            }
+            .epds-container {
+                max-width: 720px;
+            }
+
+            /* Desktop Hover state on cards */
+            .card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(0,0,0,0.03);
+            }
+
+            /* Chat UI panel bottom-right placement */
+            .chat-fab {
+                bottom: 30px;
+                right: 30px;
+                width: 60px;
+                height: 60px;
+            }
+            .chat-panel {
+                position: fixed;
+                bottom: 104px;
+                right: 30px;
+                left: auto;
+                width: 380px;
+                height: 560px;
+                border-radius: 20px;
+                box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+                border: 1px solid #EBF1F6;
+                opacity: 0;
+                pointer-events: none;
+                transform: scale(0.95) translateY(10px);
+                transition: transform 0.25s cubic-bezier(0.3, 0.8, 0.4, 1), opacity 0.25s ease;
+            }
+            .chat-panel.open {
+                opacity: 1;
+                pointer-events: auto;
+                transform: scale(1) translateY(0);
+            }
+            .chat-overlay {
+                display: none; /* No grey overlay on desktop */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- FIXED LEFT SIDEBAR (>= 1024px) -->
+    <aside class="sidebar" id="main-sidebar">
+        <div class="sidebar-header" style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="brand-logo" style="color: #3A77B8;"><span style="font-size: 22px;">👨‍🍼</span> Suami Siaga</div>
+        </div>
+        <button class="nav-item active" onclick="navTo('beranda')">
+            <span class="icon">🏠</span> Beranda
+        </button>
+        <button class="nav-item" onclick="navTo('epds')">
+            <span class="icon">📋</span> Skrining Istri
+        </button>
+        <button class="nav-item" onclick="navTo('panduan')">
+            <span class="icon">💡</span> Panduan Dukungan
+        </button>
+        <button class="nav-item" onclick="navTo('mood')">
+            <span class="icon">📈</span> Jurnal Mood
+        </button>
+        <button class="nav-item" onclick="navTo('ayah')">
+            <span class="icon">💪</span> Ruang Suami
+        </button>
+        <button class="nav-item" onclick="navTo('bantuan')">
+            <span class="icon">🆘</span> Kontak Bantuan
+        </button>
+        <button class="nav-item" onclick="navTo('pengaturan')">
+            <span class="icon">🤖</span> Pengaturan AI
+        </button>
+
+        <!-- User Profile Card in Sidebar bottom matching Design HTML -->
+        <div class="p-4 mt-auto" style="padding: 16px; border-top: 1px solid #EBF1F6; margin-top: auto;">
+            <div style="padding: 12px; border-radius: 16px; background-color: #F9FAFB; display: flex; align-items: center; gap: 12px; border: 1px solid #E5E7EB;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #EBF4FC; display: flex; align-items: center; justify-content: center; font-size: 20px;">👤</div>
+                <div>
+                    <p style="font-size: 13px; font-weight: 700; color: #374151; margin: 0;">Suami</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN SCROLLABLE AREA -->
+    <main class="main-scroll" id="main-scroll">
+        <div class="content">
+
+            <!-- ==================== BERANDA ==================== -->
+            <section id="sec-beranda">
+                <!-- Bento Header Area matching Design HTML exactly -->
+                <header style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+                    <div>
+                        <h1 id="hdr-beranda" style="font-size: 28px; font-weight: 800; color: #3A77B8; margin-bottom: 4px; letter-spacing: -0.02em;">Dampingi Langkah Istri 👋</h1>
+                        <p id="p-journey-day" style="color: #6B7280; font-size: 14px; margin-bottom: 0;">Hari ini adalah hari ke-0 perjalanan istri anda pasca persalinan.</p>
+                    </div>
+                    <div class="bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-orange-100" id="header-screening-pill" style="min-width: 180px;">
+                        <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: #9CA3AF; margin-bottom: 2px;">Skrining Terakhir (EPDS)</p>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="text-base font-bold" style="color: #F2994A;" id="header-risk-tier">Ringan</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] bg-orange-100 text-orange-600 font-bold" id="header-score-badge">Skor 11</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- PERINGATAN KRISIS UTAMA -->
+                <div class="crisis-warning d-none" id="home-warning-sc">
+                    <h3>⚠️ Perhatian Medis Diperlukan</h3>
+                    <p id="warn-sc-desc">Berdasarkan hasil skrining terakhir, istri Anda menunjukkan indikasi kuat membutuhkan pertolongan medis/psikologis. Hubungi hotline sekarang.</p>
+                    <button class="btn btn-danger" onclick="navTo('bantuan')">Hubungi Layanan Darurat</button>
+                </div>
+
+                <!-- TOP ROW WIDGETS -->
+                <div class="grid-3" style="margin-bottom: 20px;">
+                    <!-- EPDS Quick Card -->
+                    <div class="card" id="crd-scr" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0; min-height: 250px;">
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: #3A77B8; margin-bottom: 6px;">Skrining Mingguan</h3>
+                            <p style="font-size: 13px; color: #6B7280; margin-bottom: 12px; line-height: 1.5; max-width: 100%;">Edinburgh Postnatal Depression Scale (EPDS) membantu memantau kondisi emosional istri pasca-salin.</p>
+                            <p id="screening-status-str" style="font-size: 12.5px; font-weight: 700; color: var(--primary-dark); margin-bottom: 12px; line-height: 1.4;">Istri belum pernah diskrining.</p>
+                        </div>
+                        <button class="btn" onclick="navTo('epds')" style="width: 100%; border-radius: 12px; font-weight: 700; font-size: 14px; padding: 10px;">Mulai Skrining</button>
+                    </div>
+
+                    <!-- Daily Tasks (Dukungan Hari Ini) -->
+                    <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: #3A77B8; margin-bottom: 10px;">Dukungan Hari Ini 💡</h3>
+                            
+                            <!-- Display dynamic quote of the day based on mood -->
+                            <div id="dashboard-empathy-quote-box" style="background-color: #F0F7FF; border-left: 4px solid #3A77B8; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;">
+                                <p style="font-size: 10px; font-weight: 700; color: #3A77B8; uppercase; letter-spacing: 0.05em; margin: 0 0 4px 0; display: flex; align-items: center; gap: 4px;">
+                                    <span>🌸 Quotes Empati Harian</span>
+                                </p>
+                                <p id="dashboard-empathy-quote" style="font-size: 11.5px; font-style: italic; color: #2C5282; margin: 0; line-height: 1.45; font-weight: 500;">
+                                    "Setiap usaha kecil Anda berdua hari ini adalah langkah berharga menuju pemulihan dan kedamaian."
+                                </p>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 8px;" id="dashboard-daily-tasks">
+                                <!-- Populated dynamically from script with real checklist status -->
+                            </div>
+                        </div>
+                        <button class="btn btn-outline" onclick="navTo('panduan')" style="width: 100%; border-radius: 12px; font-weight: 700; font-size: 13px; min-height: 38px; padding: 8px 12px;">Lihat Selengkapnya</button>
+                    </div>
+
+                    <!-- Breathing Exercise Widget in Theme Solid Blue Color -->
+                    <div class="card text-center" style="background-color: #3A77B8; color: white; border: none; margin-bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; min-height: 250px;">
+                        <div style="width: 56px; height: 56px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; animation: pulse 2.5s infinite;">
+                            <div style="width: 24px; height: 24px; background-color: white; border-radius: 50%; opacity: 0.85;"></div>
+                        </div>
+                        <h3 style="color: white; font-size: 18px; font-weight: 700; margin-bottom: 4px;">Box Breathing</h3>
+                        <p style="font-size: 12px; color: #EBF4FC; opacity: 0.9; margin-bottom: 16px; line-height: 1.4; max-width: 100%;">Tenangkan pikiran & redakan gelisah dalam 3 menit.</p>
+                        <button class="btn" onclick="navTo('ayah')" style="background-color: white; color: #3A77B8; border: none; width: 100%; max-width: 140px; border-radius: 20px; font-weight: 700; font-size: 13px; height: 38px; min-height: 38px; padding: 0 16px; box-shadow: 0 4px 12px rgba(58,119,184,0.15);">Mulai Latihan</button>
+                    </div>
+                </div>
+
+                <!-- BOTTOM ROW WIDGETS -->
+                <div class="grid-2">
+                    <!-- Dynamic Mood Tracker Chart Card on Beranda -->
+                    <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <h3 style="font-size: 17px; font-weight: 800; color: #3A77B8; margin-bottom: 0;">Pola Mood Pasangan</h3>
+                                <span style="font-size: 9px; color: #9CA3AF; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">7 Hari</span>
+                            </div>
+                            <!-- Mini Tabs on Dashboard -->
+                            <div style="display: flex; gap: 4px; background-color: #F1F5F9; padding: 3px; border-radius: 8px; margin-bottom: 12px;">
+                                <button onclick="setDashboardMoodTab('mother')" id="db-tab-mother" style="flex: 1; border: none; font-size: 11px; font-weight: 700; padding: 6px; border-radius: 6px; cursor: pointer; transition: all 0.2s; background-color: white; color: #3A77B8; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                    ✿ Istri
+                                </button>
+                                <button onclick="setDashboardMoodTab('father')" id="db-tab-father" style="flex: 1; border: none; font-size: 11px; font-weight: 700; padding: 6px; border-radius: 6px; cursor: pointer; transition: all 0.2s; background-color: transparent; color: #64748B;">
+                                    👨‍🍼 Suami
+                                </button>
+                            </div>
+                            <div class="chart-container" id="dashboard-mood-history-visual" style="height: 110px; border-bottom: none;">
+                                <!-- Bars will populate dynamically -->
+                            </div>
+                        </div>
+                        <button class="btn btn-outline" onclick="navTo('mood')" style="width: 100%; border-radius: 12px; font-weight: 700; font-size: 13px; min-height: 38px; padding: 8px 12px; margin-top: 14px;">Catat Kondisi Hari Ini</button>
+                    </div>
+
+                    <!-- Crisis Warning Area and AI Assistant Promo -->
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- Crisis Hotlines Widget -->
+                        <div class="card" style="background-color: #FDE8E8; border: 1px solid #EB5757; margin-bottom: 0; padding: 20px; display: flex; flex-direction: column; justify-content: center; border-radius: 24px;">
+                            <h3 style="color: #EB5757; font-size: 18px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">Bantuan Darurat 🆘</h3>
+                            <p style="color: #991B1B; font-size: 13px; font-weight: 500; margin-bottom: 12px; line-height: 1.4;">Jangan menanggung beban sendirian. Hubungi ahli segera jika kondisi darurat.</p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <a href="tel:119" class="btn" style="background-color: white; border: 1.5px solid #FCA5A5; color: #EB5757; border-radius: 12px; font-weight: 700; font-size: 12.5px; height: 38px; min-height: 38px; padding: 0; box-shadow: none;">Layanan 119</a>
+                                <a href="tel:119" class="btn" style="background-color: white; border: 1.5px solid #FCA5A5; color: #EB5757; border-radius: 12px; font-weight: 700; font-size: 12.5px; height: 38px; min-height: 38px; padding: 0; box-shadow: none;">SEJIWA 119</a>
+                            </div>
+                        </div>
+
+                        <!-- AI Chat Assistant Promo Widget -->
+                        <div class="card" style="margin-bottom: 0; display: flex; align-items: center; gap: 16px; padding: 18px;">
+                            <div style="width: 44px; height: 44px; border-radius: 50%; background-color: #EBF4FC; display: flex; align-items: center; justify-content: center; font-size: 22px;">🤖</div>
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 14px; font-weight: 700; color: #374151; margin: 0 0 2px 0;">Butuh Edukasi PPD?</h4>
+                                <p style="font-size: 11.5px; color: #9CA3AF; margin: 0; font-weight: 500;">Diskusikan kendala dengan asisten AI.</p>
+                            </div>
+                            <button class="btn btn-accent" onclick="openMiniChatPanel()" style="background-color: #4A90D9; border-radius: 10px; font-size: 11.5px; font-weight: 700; padding: 8px 12px; width: auto; min-height: 34px; height: 34px; box-shadow: none;">Tanya Asisten</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC ANALYTICS & RECOVERY ADVISORY CARD -->
+                <div class="card" id="mood-analytics-advisory-card" style="margin-top: 24px; border: 1.5px solid #D2E3F4; background-color: #F8FAFC; border-radius: 24px; padding: 24px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                        <span style="font-size: 20px;">📊</span>
+                        <h3 style="font-size: 18px; font-weight: 800; color: #3A77B8; margin: 0;">Analisis Pola Kesehatan Emosi</h3>
+                    </div>
+                    
+                    <p style="font-size: 13.5px; color: #4B5563; line-height: 1.5; margin-bottom: 18px;">
+                        Setiap perubahan suasana hati menceritakan pola kelelahan fisik dan beban psikologis harian. Di bawah ini adalah ringkasan klinis dinamis berdasarkan log harian Anda.
+                    </p>
+
+                    <!-- Row of Quick Averages -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                        <div style="background-color: white; border: 1px solid #E2E8F0; padding: 14px; border-radius: 16px;">
+                            <span style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748B; margin-bottom: 4px;">Rata-rata Mood Istri</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="font-size: 18px; font-weight: 800; color: #1E293B;" id="analysis-avg-mother">-</span>
+                                <span style="font-size: 14px;" id="analysis-emoji-mother"></span>
+                            </div>
+                        </div>
+                        <div style="background-color: white; border: 1px solid #E2E8F0; padding: 14px; border-radius: 16px;">
+                            <span style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748B; margin-bottom: 4px;">Rata-rata Mood Suami</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="font-size: 18px; font-weight: 800; color: #1E293B;" id="analysis-avg-father">-</span>
+                                <span style="font-size: 14px;" id="analysis-emoji-father"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trend text area -->
+                    <div style="background-color: #F1F5F9; border-left: 4px solid #3A77B8; padding: 14px; border-radius: 0 14px 14px 0; margin-bottom: 24px;">
+                        <h4 style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #475569; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+                            <span>🔍</span> Temuan & Rekomendasi Pola
+                        </h4>
+                        <p id="analysis-findings-text" style="font-size: 13px; color: #334155; margin: 0; line-height: 1.5; font-weight: 500;">
+                            Menganalisis riwayat emosional... Jika data mood masih kosong, silakan catat beberapa entri terlebih dahulu di tab Jurnal Mood.
+                        </p>
+                    </div>
+
+                    <!-- Keep Better Mental Health Suggestions -->
+                    <div style="border-top: 1px solid #E2E8F0; padding-top: 18px;">
+                        <h4 style="font-size: 14px; font-weight: 800; color: #1E293B; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                            <span>💡</span> Strategi Utama Menjaga Kesehatan Mental Bersama
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 14px;">
+                            <!-- Exercise suggestion -->
+                            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                <div style="background-color: #EBF8FF; color: #2B6CB0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; font-weight: bold;">🏃‍♂️</div>
+                                <div style="flex: 1;">
+                                    <h5 style="font-size: 12.5px; font-weight: 700; color: #2D3748; margin: 0 0 2px 0;">Latihan & Olahraga Berkala</h5>
+                                    <p style="font-size: 11.5px; color: #4A5568; margin: 0; line-height: 1.4;">
+                                        Melakukan olahraga atau aktivitas fisik ringan membakar hormon stres kortisol dan mengeluarkan endorfin. Usahakan jalan kaki ringan bersama selama 15 menit atau olahraga santai secara berkala.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Nutrition suggestion -->
+                            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                <div style="background-color: #FEFCBF; color: #975A16; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; font-weight: bold;">🍽️</div>
+                                <div style="flex: 1;">
+                                    <h5 style="font-size: 12.5px; font-weight: 700; color: #2D3748; margin: 0 0 2px 0;">Pola Makan Nutrisi Teratur 3x Sehari</h5>
+                                    <p style="font-size: 11.5px; color: #4A5568; margin: 0; line-height: 1.4;">
+                                        Tubuh yang kelaparan atau melonjaknya insulin akibat makan tidak teratur memperparah kepanikan, kecemasan, dan ketidakstabilan suasana hati pascasalin. Selalu prioritaskan makan tepat waktu 3 kali sehari.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Sleep suggestion -->
+                            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                <div style="background-color: #EBF4FC; color: #2B6CB0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; font-weight: bold;">😴</div>
+                                <div style="flex: 1;">
+                                    <h5 style="font-size: 12.5px; font-weight: 700; color: #2D3748; margin: 0 0 2px 0;">Prioritas Tidur & Istirahat Cukup Setiap Hari</h5>
+                                    <p style="font-size: 11.5px; color: #4A5568; margin: 0; line-height: 1.4;">
+                                        Tidurnya Istri yang cukup sangat vital bagi kesembuhan hormonal Istri dan penjagaan emosi Suami. Atur sistem shift malam secara kolaboratif sehingga masing-masing mendapatkan kualitas tidur yang cukup setiap harinya.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PERSISTENT ETHICS NOTE -->
+                <div class="disclaimer-box" id="et-box-home" style="margin-top: 24px; margin-bottom: 0;">
+                    <p>⚖️ <strong>Etika & Keselamatan:</strong> Aplikasi skrining ini bukan merupakan alat diagnosis formal atau perangkat medis. Hasil menunjukkan indikator risiko awal. Penting untuk mengonsultasikan temuan ke dokter spesialis kandungan (obgyn), psikolog klinis, atau psikiater apabila gejala berlanjut.</p>
+                </div>
+            </section>
+
+            <!-- ==================== SKRINING EPDS ==================== -->
+            <section id="sec-epds" class="d-none">
+                <div class="epds-container">
+                    <h1>Skrining EPDS (Edinburgh Postnatal Depression Scale)</h1>
+                    <p>Skala ini mengukur perasaan istri dalam 7 hari terakhir. Sebagai pendamping terdekat, isilah instrumen ini berdasarkan observasi langsung, perilaku sehari-hari, serta hasil perbincangan lembut bersamanya.</p>
+                    
+                    <div class="disclaimer-box" id="et-box-epds">
+                        <p>🔒 <strong>Jaminan Privasi:</strong> Seluruh data skrining disimpan lokal di HP Anda. Data sepenuhnya rahasia, tidak diunggah ke cloud.</p>
+                    </div>
+
+                    <form id="epds-form" onsubmit="calculateEPDS(event)">
+                        <div id="epds-questions-container"></div>
+                        <button type="submit" class="btn" style="margin-top: 14px;">Hitung Hasil Skrining & Simpan</button>
+                    </form>
+
+                    <!-- EPDS RESULT DISPLAY -->
+                    <div class="card d-none" id="epds-result-card" style="margin-top: 24px; border: 2.5px solid var(--primary);">
+                        <div class="flex-between mb-1" style="border-bottom: 2px solid #EAEAEA; padding-bottom: 12px; margin-bottom: 16px;">
+                            <h2>Hasil Skrining</h2>
+                            <span id="epds-result-badge" style="padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 15px;">-</span>
+                        </div>
+                        <h3>Total Nilai: <span id="epds-score-num" style="color: var(--primary-dark); font-size: 24px; font-weight: 800;">0</span> / 30</h3>
+                        <p id="epds-result-text" style="font-weight: 600; margin-top: 10px;"></p>
+                        
+                        <!-- CRITICAL ALERT IF SELF-HARM IS >= 1 -->
+                        <div class="crisis-warning d-none" id="epds-sh-warning" style="margin-top: 16px;">
+                            <h3>⚠️ PERINGATAN KRITIS DARURAT</h3>
+                            <p>Istri terindikasi memiliki pikiran menyakiti diri sendiri / putus asa. Sangat penting bagi Anda untuk tidak meninggalkan dia sendirian tanpa pengawasan, dengarkan dia penuh kasih sayang, dan segera hubungi tim medis darurat di bawah ini!</p>
+                            <a href="tel:119" class="btn btn-danger">📞 Hubungi Kemenkes SEJIWA 119 Ext. 8</a>
+                        </div>
+
+                        <button class="btn btn-accent" onclick="navTo('panduan')" style="margin-top: 16px;">Buka Panduan Kustom</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== PANDUAN DUKUNGAN ==================== -->
+            <section id="sec-panduan" class="d-none">
+                <h1>Panduan Pendampingan Kustom</h1>
+                <p id="panduan-desc">Skrining istri Anda mendahului segalanya agar kami dapat membidani panduan aksi terbaik. Di bawah ini adalah langkah-langkah praktis yang diprioritaskan.</p>
+
+                <!-- STATUS PROMPT IF NO EPDS -->
+                <div class="card id-none" id="panduan-empty-prompt">
+                    <h3>⚠️ Belum Ada Hasil Skrining</h3>
+                    <p>Hasil panduan akan disesuaikan secara dinamis jika Anda telah melakukan analisis skrining terbaru terhadap istri Anda.</p>
+                    <button class="btn" onclick="navTo('epds')">Mulai Skrining Sekarang</button>
+                </div>
+
+                <div class="grid-2" id="panduan-grid-content">
+                    <!-- Dynamic Checklist content goes here -->
+                </div>
+            </section>
+
+            <!-- ==================== JURNAL MOOD ==================== -->
+            <section id="sec-mood" class="d-none">
+                <h1>Jurnal Pemantau Suasana Hati</h1>
+                <p>Mencatat stabilitas emosi Istri pascasalin secara berkala, sekaligus memantau kelelahan & ketahanan emosional Suami. Jaga ketenangan jiwa bersama untuk proses nifas yang sehat.</p>
+
+                <!-- Real-Life Calendar Integration Panel -->
+                <div style="background-color: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 20px; padding: 16px; margin-bottom: 24px;">
+                    <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px;">
+                        <div style="background-color: #EBF8FF; color: #2B6CB0; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; font-weight: bold;">📅</div>
+                        <div>
+                            <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 800; color: #3A77B8;">Integrasi Kalender Nyata (Real-Life Calendar)</h4>
+                            <p style="margin: 0; font-size: 12px; color: #4B5563; line-height: 1.45;">
+                                Jurnal ini secara otomatis mengunci tanggal hari ini berdasarkan jam kalender nyata Anda secara akurat saat disimpan. Untuk membantu disiplin harian, Anda juga dapat mengintegrasikan pengingat ke kalender utama gawai Anda di bawah ini:
+                            </p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-left: 48px;">
+                        <button onclick="downloadICSFile()" style="font-size: 11.5px; padding: 8px 12px; border-radius: 10px; font-weight: 700; background: white; border: 1.5px solid #CBD5E1; color: #334155; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;">
+                            📥 Unduh Event Pengingat Harian (.ics)
+                        </button>
+                        <button onclick="addToGoogleCalendarReminder()" style="font-size: 11.5px; padding: 8px 12px; border-radius: 10px; font-weight: 700; background: white; border: 1.5px solid #CBD5E1; color: #334155; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;">
+                            🗓️ Tambah Pengingat ke Google Calendar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB SELECTOR FOR MOTHER VS FATHER MOOD -->
+                <div style="display: flex; gap: 8px; margin-bottom: 24px; background-color: #EBF1F6; padding: 6px; border-radius: 14px; max-width: 440px;">
+                    <button onclick="switchMoodTab('mother')" id="btn-tab-mother" style="flex: 1; padding: 10px 14px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; justify-content: center; gap: 6px;" class="tab-btn active-tab">
+                        <span>✿</span> Mood Istri
+                    </button>
+                    <button onclick="switchMoodTab('father')" id="btn-tab-father" style="flex: 1; padding: 10px 14px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; justify-content: center; gap: 6px;" class="tab-btn text-gray-500">
+                        <span>👨‍🍼</span> Mood Suami
+                    </button>
+                </div>
+
+                <!-- WRAPPER : MOOD IBU -->
+                <div id="mood-section-mother">
+                    <div class="card" id="mood-selector-card">
+                        <h3>Bagaimana kondisi emosi Istri secara umum hari ini?</h3>
+                        <p style="font-size: 12.5px; color: var(--text-light); margin-bottom: 12px; font-weight: 500;">Pantau perubahan perilaku, frekuensi menangis tiba-tiba, kecemasan, atau kesulitan tidur.</p>
+                        <div class="mood-btn-container">
+                            <button type="button" class="mood-select-btn" onclick="selectMoodVal(1, this)" title="Buruk Sekali">😭</button>
+                            <button type="button" class="mood-select-btn" onclick="selectMoodVal(2, this)" title="Sedih/Murung">☹️</button>
+                            <button type="button" class="mood-select-btn" onclick="selectMoodVal(3, this)" title="Biasa">😐</button>
+                            <button type="button" class="mood-select-btn" onclick="selectMoodVal(4, this)" title="Cukup Baik">🙂</button>
+                            <button type="button" class="mood-select-btn" onclick="selectMoodVal(5, this)" title="Sangat Ceria">😄</button>
+                        </div>
+                        <div class="flex-between" style="font-size: 13px; font-weight: 700; color: var(--text-light); margin-bottom: 16px;">
+                            <span>😭 Sangat Sedih</span>
+                            <span>😐 Biasa Saja</span>
+                            <span>😄 Sangat Baik</span>
+                        </div>
+
+                        <textarea id="mood-comment" rows="3" placeholder="Tambahkan catatan khusus (misal: 'Insomnia parah tadi malam', 'Bisa tenang saat diajak ngobrol berkeliling')"></textarea>
+                        
+                        <button type="button" class="btn" style="background-color: #3A77B8; font-weight: 700;" onclick="submitMoodEntry()">Simpan Jurnal Istri</button>
+                    </div>
+
+                    <div class="card" id="mood-history-chart-card">
+                        <h3>Pola Suasana Hati Istri (7 Catatan Terakhir)</h3>
+                        <div class="chart-container" id="mood-history-visual">
+                            <!-- Bars injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WRAPPER : MOOD AYAH -->
+                <div id="mood-section-father" class="d-none">
+                    <div class="card" id="father-mood-selector-card">
+                        <h3>Bagaimana perasaan Suami menghadapi hari ini?</h3>
+                        <p style="font-size: 12.5px; color: var(--text-light); margin-bottom: 12px; font-weight: 500;">Menjadi pendamping nifas rawan burnout. Rekam tingkat kelelahan, kejenuhan, atau ketegangan emosional Anda.</p>
+                        <div class="mood-btn-container">
+                            <button type="button" class="father-mood-select-btn" onclick="selectFatherMoodVal(1, this)" style="border-radius: 50%; width: 48px; height: 48px; border: 2px solid #E5E7EB; font-size: 24px; cursor: pointer; background: white; transition: all 0.2s; padding: 0;" title="Lelah Parah/Stres">😭</button>
+                            <button type="button" class="father-mood-select-btn" onclick="selectFatherMoodVal(2, this)" style="border-radius: 50%; width: 48px; height: 48px; border: 2px solid #E5E7EB; font-size: 24px; cursor: pointer; background: white; transition: all 0.2s; padding: 0;" title="Kurang Baik/Cemas">☹️</button>
+                            <button type="button" class="father-mood-select-btn" onclick="selectFatherMoodVal(3, this)" style="border-radius: 50%; width: 48px; height: 48px; border: 2px solid #E5E7EB; font-size: 24px; cursor: pointer; background: white; transition: all 0.2s; padding: 0;" title="Biasa/Kaku">😐</button>
+                            <button type="button" class="father-mood-select-btn" onclick="selectFatherMoodVal(4, this)" style="border-radius: 50%; width: 48px; height: 48px; border: 2px solid #E5E7EB; font-size: 24px; cursor: pointer; background: white; transition: all 0.2s; padding: 0;" title="Cukup Tenang">🙂</button>
+                            <button type="button" class="father-mood-select-btn" onclick="selectFatherMoodVal(5, this)" style="border-radius: 50%; width: 48px; height: 48px; border: 2px solid #E5E7EB; font-size: 24px; cursor: pointer; background: white; transition: all 0.2s; padding: 0;" title="Bugar Semangat">😄</button>
+                        </div>
+                        <div class="flex-between" style="font-size: 13px; font-weight: 700; color: var(--text-light); margin-bottom: 16px;">
+                            <span>😭 Stres Berat</span>
+                            <span>😐 Biasa Saja</span>
+                            <span>😄 Sangat Fit</span>
+                        </div>
+
+                        <textarea id="father-mood-comment" rows="3" placeholder="Ada kekhawatiran atau kelelahan khusus hari ini? Catat di sini (misal: 'Kurang tidur shift malam', 'Lega setelah box breathing')"></textarea>
+                        
+                        <button type="button" class="btn" style="background-color: #3A77B8; font-weight: 700;" onclick="submitFatherMoodEntry()">Simpan Jurnal Suami</button>
+                    </div>
+
+                    <div class="card" id="father-mood-history-chart-card">
+                        <h3>Pola Suasana Hati Suami (7 Catatan Terakhir)</h3>
+                        <div class="chart-container" id="father-mood-history-visual">
+                            <!-- Bars injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SHARED MEDICAL EXPORT DATA PANEL -->
+                <div class="card" style="margin-top: 24px; border: 1.5px dashed #3A77B8; background-color: #F8FAFC; border-radius: 20px;">
+                    <h3 style="color: #3A77B8; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 17px; font-weight: 800;">📥 Laporan & Ekspor Data Medis</h3>
+                    <p style="font-size: 12.5px; color: #4B5563; margin-bottom: 16px; line-height: 1.5;">
+                        Ekspor seluruh riwayat skrining EPDS istri serta jurnal mood dalam format file standar untuk diperlihatkan kepada dokter obgyn, psikolog klinis, atau psikiater guna penanganan medis yang akurat.
+                    </p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #6B7280; margin-bottom: 6px;">Format Berkas</label>
+                            <select id="export-format" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 10px; font-size: 13px; font-weight: 600; outline: none; background-color: white;">
+                                <option value="pdf">📄 Dokumen PDF (.pdf)</option>
+                                <option value="csv">📊 Spreadsheet Excel (.csv)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #6B7280; margin-bottom: 6px;">Cakupan Data</label>
+                            <select id="export-type" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 10px; font-size: 13px; font-weight: 600; outline: none; background-color: white;">
+                                <option value="all">📁 Hubungkan Semua Riwayat</option>
+                                <option value="epds">📋 Hanya Skrining EPDS</option>
+                                <option value="only_wife_mood">🌸 Hanya Jurnal Mood Istri</option>
+                                <option value="only_husband_mood">👨‍🍼 Hanya Jurnal Mood Suami</option>
+                                <option value="mood">📈 Hanya Jurnal Mood (Suami & Istri)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" onclick="triggerMedicalExport()" style="width: 100%; background-color: #3A77B8; border-color: #3A77B8; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 13.5px; border-radius: 12px; height: 42px; min-height: 42px;">
+                        <span>📂</span> Unduh Laporan Sekarang
+                    </button>
+                    <p style="font-size: 11px; color: #9CA3AF; text-align: center; margin-top: 10px; font-weight: 500;">🔐 Seluruh pemrosesan & penggabungan berkas diselesaikan secara langsung di peramban Anda.</p>
+                </div>
+            </section>
+
+            <!-- ==================== RUANG AYAH ==================== -->
+            <section id="sec-ayah" class="d-none">
+                <h1>Ruang Suami 👨‍🍼</h1>
+                <p>Seorang penolong butuh bernapas lega sebelum menolong orang lain. Menjadi pilar dalam krisis keluarga menguras energi Anda secara fisik dan psikologis.</p>
+
+                <!-- Box Breathing Card -->
+                <div class="card text-center" id="box-breathing-card">
+                    <h2>🌬️ Latihan Napas Kotak (Box Breathing)</h2>
+                    <p>Membantu menekan hormon kortisol penimbun stres dalam 3 menit.</p>
+                    <div class="breathing-box">
+                        <div class="breath-circle" id="breath-node">SIAP?</div>
+                    </div>
+                    <p id="breath-desc-instructions" style="font-size: 14.5px; font-weight: 600; color: var(--text-light); height: 40px; margin-top: 10px;">Latihan 4 Fase: Tarik (4s) - Tahan (4s) - Hembus (4s) - Tahan (4s)</p>
+                    <button class="btn btn-accent" id="btn-start-breath" onclick="toggleBreathingGuide()">Mulai Bernapas</button>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card" style="border-left: 5px solid var(--danger);">
+                        <h3 style="color: var(--danger);">❌ Hindari Mengatakan</h3>
+                        <ul style="padding-left: 20px; line-height: 1.6; font-size: 14px; font-weight: 600;">
+                            <li class="mb-1">"Kamu kurang bersyukur, makanya sedih terus."</li>
+                            <li class="mb-1">"Semua ibu baru juga capek, tahan aja sedikit lagi."</li>
+                            <li class="mb-1">"Jangan manja lah, anak kita kan sehat walafiat."</li>
+                            <li>"Jangan nangis terus, ASI kamu nanti mampet lho."</li>
+                        </ul>
+                    </div>
+
+                    <div class="card" style="border-left: 5px solid var(--accent);">
+                        <h3 style="color: var(--accent-dark);">✅ Coba Katakan Berulang</h3>
+                        <ul style="padding-left: 20px; line-height: 1.6; font-size: 14px; font-weight: 600;">
+                            <li class="mb-1">"Aku di sisimu selalu, sayang. Kita selesaikan masalah ini bersama."</li>
+                            <li class="mb-1">"Lelahmu sangat wajar. Perasaanmu valid sepenuhnya."</li>
+                            <li class="mb-1">"Tidurlah beberapa jam. Biar aku yang mandikan bayi kita."</li>
+                            <li>"Kamu adalah ibu terbaik bagi anak kita. Terima kasih telah berjuang."</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== KONTAK BANTUAN ==================== -->
+            <section id="sec-bantuan" class="d-none">
+                <h1>Bantuan Darurat & Profesional Rujukan</h1>
+                <p>Bila istri Anda menolak didekati, cemas tanpa henti, berniat mencelakai diri/bayi, atau tidak tidur 3 malam beruntun, ini adalah keadaan darurat psikis.</p>
+
+                <div class="crisis-box crisis-warning" id="contact-crisis-national">
+                    <h3>Emergency Nasional Lapor Bunuh Diri</h3>
+                    <p>Layanan konsultasi krisis resmi milik Pemerintah RI.</p>
+                    <a href="tel:119" class="btn btn-danger" style="margin-top: 8px;">📞 Hubungi Kemenkes Sejiwa - Dial 119 - Ext. 8</a>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card" id="referral-kemenkes">
+                        <h3>Halo Kemenkes</h3>
+                        <p>Informasi rujukan pendaftaran poli kejiwaan Puskesmas dan RS Pemerintah se-Indonesia.</p>
+                        <a href="tel:1500567" class="btn">📞 Hubungi 1500567</a>
+                    </div>
+
+                    <div class="card" id="referral-intothelight">
+                        <h3>Into the Light Indonesia</h3>
+                        <p>Kelompok komunitas pendampingan bunuh diri dan edukasi preventif pencegahan krisis mental di Indonesia.</p>
+                        <a href="https://www.intothelightid.org" target="_blank" rel="noopener" class="btn btn-outline">Buka Web Into the Light</a>
+                    </div>
+                </div>
+
+                <div class="card" id="crd-step-by-step">
+                    <h3>Langkah Menghubungi Ahli:</h3>
+                    <ul style="padding-left: 20px; font-size: 14.5px; line-height: 1.6; font-weight: 600;">
+                        <li class="mb-1">Cari fasilitas kesehatan terdekat (RSUD, RS Swasta, Puskesmas besar) yang menyediakan psikolog klinis atau psikiater berizin (SIP).</li>
+                        <li class="mb-1">Gunakan platform telemedicine (Halodoc/Alodokter) jika istri menolak bepergian fisik untuk konseling daring darurat.</li>
+                        <li>Sertakan perwakilan keluarga besar sebagai saksi penenang, hindari perdebatan konfrontasi.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- ==================== PENGATURAN AI ==================== -->
+            <section id="sec-pengaturan" class="d-none">
+                <h1>Pengaturan Asisten AI (Opsional)</h1>
+                <p>Secara baku, aplikasi dan fitur chat berjalan luring mandiri di dalam gawai Anda. Jika diaktifkan, AI pintar Google Gemini akan memberikan respons empati bercakap kustom.</p>
+
+                <div class="card" id="ai-configuration-card">
+                    <h2>🤖 Integrasi API Gemini</h2>
+                    <p style="font-size: 14px;">Aktifkan mode ini untuk mengubah asisten tanggapan aturan baku menjadi kecerdasan buatan dinamis. Kunci aman disimpan lokal.</p>
+
+                    <div class="switch-control" id="ctrl-ai-mode">
+                        <span class="switch-label">Gunakan Google Gemini AI</span>
+                        <input type="checkbox" class="switch-toggle" id="ai-mode-active-chk" onchange="onClickAIToggle()">
+                    </div>
+
+                    <div id="ai-key-input-container" class="d-none">
+                        <label for="frm-ai-key-field" style="display: block; font-weight: 700; margin-bottom: 6px; font-size: 14px;">Masukkan Google Gemini API Key Anda:</label>
+                        <input type="password" id="frm-ai-key-field" placeholder="Kunci Anda (AIzaSy...)">
+                        <button class="btn btn-outline" style="margin-top: 6px;" onclick="saveGeminiConfiguration()">Simpan Konfigurasi</button>
+                    </div>
+                </div>
+
+                <div class="card" style="border: 2px dashed var(--danger);" id="danger-wipe-card">
+                    <h3 style="color: var(--danger);">⚠️ Tindakan Berbahaya</h3>
+                    <p style="font-size: 13.5px;">Wipe, melenyapkan seluruh rekaman skrining, status checklist jurnal mood, serta ingatan asisten AI dari database SQLite / WebStorage lokal.</p>
+                    <button class="btn btn-danger" onclick="eraseDeviceDatabase()">Reset Semua Data Gawai</button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- MOBILE FIXED BOTTOM TAB BAR (< 768px) -->
+    <nav class="nav-bottom" id="mobile-nav-root">
+        <button class="nav-item active" onclick="navTo('beranda')">
+            <span class="icon">🏠</span>
+            <span>Beranda</span>
+        </button>
+        <button class="nav-item" onclick="navTo('epds')">
+            <span class="icon">📋</span>
+            <span>Skrining</span>
+        </button>
+        <button class="nav-item" onclick="navTo('panduan')">
+            <span class="icon">💡</span>
+            <span>Panduan</span>
+        </button>
+        <button class="nav-item" onclick="navTo('mood')">
+            <span class="icon">📈</span>
+            <span>Jurnal</span>
+        </button>
+        <button class="nav-item" onclick="navTo('bantuan')">
+            <span class="icon">🆘</span>
+            <span>Bantuan</span>
+        </button>
+    </nav>
+
+    <!-- FLOATING CHAT BUTTON (FAB) -->
+    <button class="chat-fab" id="view-chat-trigger" onclick="openMiniChatPanel()">💬</button>
+
+    <!-- CHAT OVERLAY SHIELD FOR MOBILE BOTTOM SHEET -->
+    <div class="chat-overlay" id="mobile-chat-shield" onclick="closeMiniChatPanel()"></div>
+
+    <!-- RESPONSIVE CHAT PANEL -->
+    <div class="chat-panel" id="main-chat-panel">
+        <div class="chat-header">
+            <h3>🤖 Asisten Suami</h3>
+            <button class="chat-close-btn" onclick="closeMiniChatPanel()">×</button>
+        </div>
+        <div class="chat-body" id="chat-scroller-node">
+            <div class="chat-msg msg-assistant">Halo Suami. Saya asisten pendamping khusus PPD. Silakan tanyakan apa saja tentang kondisi ketenangan emosional istri, atau kekhawatiran yang sedang Suami rasakan.</div>
+        </div>
+        <div class="chat-input-container">
+            <input type="text" id="chat-input-field" placeholder="Ketik keluh kesah Anda..." onkeypress="handleChatEnter(event)">
+            <button class="chat-send-btn" onclick="submitUserChatQuery()">➤</button>
+        </div>
+    </div>
+
+    <!-- APPLICATION SCRIPTS -->
+    <script>
+        // -----------------------------------------
+        // State variables / Local persistence variables
+        // -----------------------------------------
+        const KEY_EPDS = STORE_PREFIX = 'pa_epds';
+        const KEY_MOODS = 'pa_moods';
+        const KEY_FATHER_MOODS = 'pa_father_moods';
+        const KEY_AI = 'pa_ai_config';
+        const KEY_CHECKLIST = 'pa_checklist';
+
+        let epdsRecords = JSON.parse(localStorage.getItem(KEY_EPDS)) || [];
+        let moodRecords = JSON.parse(localStorage.getItem(KEY_MOODS)) || [];
+        let fatherMoodRecords = JSON.parse(localStorage.getItem(KEY_FATHER_MOODS)) || [];
+        let aiConfig = JSON.parse(localStorage.getItem(KEY_AI)) || { enabled: false, key: "" };
+        let activeChecklist = JSON.parse(localStorage.getItem(KEY_CHECKLIST)) || {};
+
+        let currentSelectedMood = null;
+        let currentSelectedFatherMood = null;
+        let activeDashboardMoodTab = 'mother';
+
+        const epdsArr = [
+            {
+                id: 1,
+                q: "Mampu tertawa dan melihat sisi lucu dari berbagai hal:",
+                options: [
+                    { t: "Sebanyak biasanya", s: 0 },
+                    { t: "Agak kurang dari biasanya", s: 1 },
+                    { t: "Jelas jauh lebih kurang", s: 2 },
+                    { t: "Tidak bisa sama sekali", s: 3 }
+                ]
+            },
+            {
+                id: 2,
+                q: "Menantikan sesuatu dengan perasaan gembira:",
+                options: [
+                    { t: "Sama seperti biasanya", s: 0 },
+                    { t: "Agak kurang dari biasanya", s: 1 },
+                    { t: "Jelas kurang dari biasanya", s: 2 },
+                    { t: "Hampir tidak pernah", s: 3 }
+                ]
+            },
+            {
+                id: 3,
+                q: "Menyalahkan diri sendiri secara tidak perlu ketika ada hal buruk terjadi:",
+                options: [
+                    { t: "Ya, sebagian besar waktu", s: 3 },
+                    { t: "Ya, kadang-kadang", s: 2 },
+                    { t: "Tidak terlalu sering", s: 1 },
+                    { t: "Tidak pernah", s: 0 }
+                ]
+            },
+            {
+                id: 4,
+                q: "Merasa cemas atau khawatir tanpa alasan yang jelas:",
+                options: [
+                    { t: "Tidak sama sekali", s: 0 },
+                    { t: "Jarang", s: 1 },
+                    { t: "Ya, kadang-kadang", s: 2 },
+                    { t: "Ya, sering sekali", s: 3 }
+                ]
+            },
+            {
+                id: 5,
+                q: "Merasa takut atau panik tanpa alasan yang kuat:",
+                options: [
+                    { t: "Ya, cukup sering", s: 3 },
+                    { t: "Ya, kadang-kadang", s: 2 },
+                    { t: "Jarang", s: 1 },
+                    { t: "Tidak sama sekali", s: 0 }
+                ]
+            },
+            {
+                id: 6,
+                q: "Merasa kewalahan dalam mendelegasikan & mengendalikan tugas keseharian:",
+                options: [
+                    { t: "Ya, sebagian besar waktu dia tidak bisa mengatasinya sama sekali", s: 3 },
+                    { t: "Ya, terkadang dia tidak bisa mengatasinya seperti biasa", s: 2 },
+                    { t: "Tidak, sebagian besar waktu dia mengatasinya dengan baik", s: 1 },
+                    { t: "Tidak, dia mengatasinya sama baiknya seperti biasa", s: 0 }
+                ]
+            },
+            {
+                id: 7,
+                q: "Merasa sangat sedih dan tidak bahagia sampai-sampai sulit beristirahat (insomnia parah):",
+                options: [
+                    { t: "Ya, sebagian besar waktu", s: 3 },
+                    { t: "Ya, kadang-kadang", s: 2 },
+                    { t: "Jarang", s: 1 },
+                    { t: "Tidak sama sekali", s: 0 }
+                ]
+            },
+            {
+                id: 8,
+                q: "Merasa sedih, hancur, atau putus harapan:",
+                options: [
+                    { t: "Ya, sebagian besar waktu", s: 3 },
+                    { t: "Ya, kadang-kadang", s: 2 },
+                    { t: "Jarang", s: 1 },
+                    { t: "Tidak sama sekali", s: 0 }
+                ]
+            },
+            {
+                id: 9,
+                q: "Sangat sedih hingga menangis hampir setiap hari tanpa sebab eksternal jelas:",
+                options: [
+                    { t: "Ya, sebagian besar waktu", s: 3 },
+                    { t: "Ya, kadang-kadang", s: 2 },
+                    { t: "Jarang", s: 1 },
+                    { t: "Tidak pernah", s: 0 }
+                ]
+            },
+            {
+                id: 10,
+                q: "Mempunyai pikiran / dorongan menyakiti diri sendiri atau keputusasaan eksistensial:",
+                options: [
+                    { t: "Ya, cukup sering", s: 3 },
+                    { t: "Kadang-kadang", s: 2 },
+                    { t: "Hampir tidak pernah", s: 1 },
+                    { t: "Tidak pernah", s: 0 }
+                ]
+            }
+        ];
+
+        // -----------------------------------------
+        // NAVIGATION SYSTEM
+        // -----------------------------------------
+        function navTo(sect) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(s => s.classList.add('d-none'));
+            
+            // Show requested section
+            const targetSection = document.getElementById('sec-' + sect);
+            if (targetSection) {
+                targetSection.classList.remove('d-none');
+            }
+
+            // Bind Navigation active states across BOTH sidebar & mobile bottom tabs
+            document.querySelectorAll('.nav-item').forEach(el => {
+                if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(`'${sect}'`)) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+
+            // Smooth reset scroll position
+            document.getElementById('main-scroll').scrollTop = 0;
+            
+            // Render view-specific requirements
+            if (sect === 'panduan') {
+                renderTailoredSupportGuidelines();
+            } else if (sect === 'mood') {
+                renderMoodTrackingChart();
+                renderFatherMoodTrackingChart();
+            } else if (sect === 'beranda') {
+                updateDashboardSummary();
+            }
+        }
+
+        // -----------------------------------------
+        // INITIALIZATIONS
+        // -----------------------------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            renderEPDSForm();
+            updateDashboardSummary();
+            initSettingsUI();
+        });
+
+        function updateDashboardSummary() {
+            // Calculate dynamic postpartum journey day
+            let earliestTimestamp = null;
+            if (typeof epdsRecords !== 'undefined' && epdsRecords.length > 0) {
+                epdsRecords.forEach(rec => {
+                    if (rec.timestamp && (earliestTimestamp === null || rec.timestamp < earliestTimestamp)) {
+                        earliestTimestamp = rec.timestamp;
+                    }
+                });
+            }
+            if (typeof moodRecords !== 'undefined' && moodRecords.length > 0) {
+                moodRecords.forEach(rec => {
+                    if (rec.timestamp && (earliestTimestamp === null || rec.timestamp < earliestTimestamp)) {
+                        earliestTimestamp = rec.timestamp;
+                    }
+                });
+            }
+            if (typeof fatherMoodRecords !== 'undefined' && fatherMoodRecords.length > 0) {
+                fatherMoodRecords.forEach(rec => {
+                    if (rec.timestamp && (earliestTimestamp === null || rec.timestamp < earliestTimestamp)) {
+                        earliestTimestamp = rec.timestamp;
+                    }
+                });
+            }
+
+            let journeyDay = 0; 
+            if (earliestTimestamp !== null) {
+                const earliestDate = new Date(earliestTimestamp);
+                const currentDate = new Date();
+                const d1 = new Date(earliestDate.getFullYear(), earliestDate.getMonth(), earliestDate.getDate());
+                const d2 = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+                const diffMs = d2.getTime() - d1.getTime();
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                journeyDay = Math.max(1, diffDays + 1);
+            }
+
+            const pJourneyDay = document.getElementById('p-journey-day');
+            if (pJourneyDay) {
+                pJourneyDay.textContent = `Hari ini adalah hari ke-${journeyDay} perjalanan istri anda pasca persalinan.`;
+            }
+
+            const hStatus = document.getElementById('screening-status-str');
+            const hCrisis = document.getElementById('home-warning-sc');
+            
+            const hRiskTier = document.getElementById('header-risk-tier');
+            const hScoreBadge = document.getElementById('header-score-badge');
+            const hPill = document.getElementById('header-screening-pill');
+            
+            if (epdsRecords.length > 0) {
+                const lastResult = epdsRecords[epdsRecords.length - 1];
+                const band = getRiskBand(lastResult.score);
+                hStatus.innerHTML = `Skrining terakhir pada <strong>${lastResult.date}</strong><br>Hasil: <strong>${band.tier} (${lastResult.score} Poin)</strong>`;
+                
+                if (hRiskTier && hScoreBadge && hPill) {
+                    hPill.style.display = 'block';
+                    hRiskTier.textContent = band.tier;
+                    hScoreBadge.textContent = `Skor ${lastResult.score}`;
+                    
+                    // Style matching risk band
+                    if (lastResult.score <= 9) {
+                        hRiskTier.style.color = "#6FCF97";
+                        hScoreBadge.style.backgroundColor = "#E6F4EA";
+                        hScoreBadge.style.color = "#137333";
+                        hPill.style.borderColor = "#E6F4EA";
+                    } else if (lastResult.score <= 12) {
+                        hRiskTier.style.color = "#F2994A";
+                        hScoreBadge.style.backgroundColor = "#FFF3E0";
+                        hScoreBadge.style.color = "#E65100";
+                        hPill.style.borderColor = "#FFE0B2"; // border-orange-100 style
+                    } else {
+                        hRiskTier.style.color = "#EB5757";
+                        hScoreBadge.style.backgroundColor = "#FDE8E8";
+                        hScoreBadge.style.color = "#C53030";
+                        hPill.style.borderColor = "#FCA5A5";
+                    }
+                }
+
+                // Show home crisis box alert if score is severe OR direct self-harm indicator is detected
+                if (lastResult.hasSelfHarmRisk || lastResult.score >= 13) {
+                    hCrisis.classList.remove('d-none');
+                    document.getElementById('warn-sc-desc').textContent = lastResult.hasSelfHarmRisk 
+                        ? "PENTING! Deteksi skrining terakhir mengindikasikan adanya pikiran/tindakan menyakiti diri sendiri. Keselamatan adalah prioritas utama."
+                        : `Skrining terakhir mengategorikan istri Anda dalam risiko ${band.tier} dengan nilai total ${lastResult.score} / 30. Mohon konsultasikan dengan ahlinya.`;
+                } else {
+                    hCrisis.classList.add('d-none');
+                }
+            } else {
+                hStatus.textContent = "Istri belum pernah diskrining.";
+                hCrisis.classList.add('d-none');
+                if (hRiskTier && hScoreBadge && hPill) {
+                    hRiskTier.textContent = "Normal";
+                    hScoreBadge.textContent = "Belum Skrining";
+                    hScoreBadge.style.backgroundColor = "#EEF2F6";
+                    hScoreBadge.style.color = "#4A5568";
+                    hPill.style.borderColor = "#EBF1F6";
+                }
+            }
+
+            // Sync dynamic dashboard visuals
+            renderDashboardDailyTasks();
+            renderDashboardMoodChart();
+            updateDynamicMoodAnalysis();
+        }
+
+        function renderDashboardDailyTasks() {
+            const container = document.getElementById('dashboard-daily-tasks');
+            if (!container) return;
+
+            // Determine which list to pull from based on latest score
+            let latestScore = -1;
+            let shRisk = false;
+            
+            if (epdsRecords.length > 0) {
+                const latest = epdsRecords[epdsRecords.length - 1];
+                latestScore = latest.score;
+                shRisk = latest.hasSelfHarmRisk;
+            }
+
+            // Get standard checklists
+            let list = [];
+            if (latestScore === -1) {
+                // Onboarding tasks
+                list = [
+                    { id: "chk_emotional_0", text: "Puji kecantikan & kesabaran istri hari ini" },
+                    { id: "chk_instrumental_0", text: "Buatkan minuman hangat kesukaannya dan pijat pundak atau punggung istri secara lembut" },
+                    { id: "chk_health_0", text: "Penuhi kebutuhan minum air hangat & suplemen Istri" }
+                ];
+            } else if (latestScore <= 9 && !shRisk) {
+                list = [
+                    { id: "chk_emotional_0", text: "Berikan pelukan hangat tulus & apresiasi lisan" },
+                    { id: "chk_instrumental_0", text: "Ambil alih tugas mencuci pakaian, merapikan rumah, atau menyiapkan air hangat untuk mandi sore" },
+                    { id: "chk_health_0", text: "Pastikan suplemen vitamin nifas sudah dikonsumsi" }
+                ];
+            } else if (latestScore <= 12 && !shRisk) {
+                list = [
+                    { id: "chk_emotional_0", text: "Dengarkan tanpa memotong (validasi emosi istri)" },
+                    { id: "chk_instrumental_0", text: "Siapkan ruang tidur yang nyaman dan tenang agar istri dapat beristirahat tanpa gangguan" },
+                    { id: "chk_health_0", text: "Ajak jalan santai cari udara pagi selama 10 menit" }
+                ];
+            } else {
+                list = [
+                    { id: "chk_emotional_1", text: "Siaga penuh & kurangi tuntutan domestik pada istri" },
+                    { id: "chk_instrumental_1", text: "Siapkan hidangan porsi sehat selagi hangat tepat waktu" },
+                    { id: "chk_health_0", text: "Bantu awasi pola tidur dan istirahat istri dengan penuh siaga" }
+                ];
+            }
+
+            // Generate and show the dynamic Empathy Quote
+            const quoteEl = document.getElementById('dashboard-empathy-quote');
+            if (quoteEl) {
+                let quoteText = "";
+                
+                if (latestScore >= 13 || shRisk) {
+                    const quotes = [
+                        "\"Air matamu adalah bukti betapa besar cintamu. Di tengah masa-masa terberat ini, Istri tidak harus kuat sendirian. Biarkan Suami menjaga, menemani, dan menopang langkahmu perlahan.\"",
+                        "\"Duka, lelah, dan rasa sakitmu adalah nyata dan valid. Tidak perlu menyembunyikannya dari Suami. Kita akan melewati badai ini bersama-sama, selangkah demi selangkah.\"",
+                        "\"Setiap air mata kesedihan dan rasa lelahmu didengar, Istriku. Kamu tidak sendirian dalam masa pemulihan ini. Kamu sangat berharga bagi perjuangan keluarga kecil kita.\""
+                    ];
+                    // Pick deterministic quote based on day or index
+                    quoteText = quotes[Math.floor((Date.now() / 86400000) % quotes.length)];
+                } else if (latestScore >= 10 && !shRisk) {
+                    const quotes = [
+                        "\"Wajar untuk merasa lelah, cemas, atau rapuh saat ini. Memberi dirimu waktu untuk beristirahat tanpa tuntutan adalah bentuk cinta terbaik bagi kesembuhan suasanamu.\"",
+                        "\"Tidak perlu menjadi sempurna setiap hari, Istriku. Cukup bernapas perlahan. Suami ada di sini untuk mendengarkan, memeluk, and meringankan semua bebanmu.\"",
+                        "\"Terima kasih sudah mencoba bertahan sejauh ini. Perasaan lelah pascapersalinan atau kehilangan adalah proses yang sah. Ambil napas, mari lalui hari ini dengan perlahan.\""
+                    ];
+                    quoteText = quotes[Math.floor((Date.now() / 86400000) % quotes.length)];
+                } else if (latestScore >= 0 && latestScore <= 9 && !shRisk) {
+                    const quotes = [
+                        "\"Ketenangan dan kebahagiaan sejati tumbuh ketika kita saling menguatkan dalam kelembutan. Terima kasih sudah merawat kehangatan rumah kita bersama.\"",
+                        "\"Kondisi emosionalmu yang sehat adalah hadiah terindah. Mari terus jalin komunikasi penuh sayang dan pelukan hangat setiap harinya.\""
+                    ];
+                    quoteText = quotes[Math.floor((Date.now() / 86400000) % quotes.length)];
+                } else {
+                    // Check mother's daily mood log if EPDS is not yet filled
+                    let latestMoodScore = -1;
+                    if (moodRecords.length > 0) {
+                        latestMoodScore = moodRecords[moodRecords.length - 1].score;
+                    }
+                    
+                    if (latestMoodScore === 1 || latestMoodScore === 2) {
+                        const quotes = [
+                            "\"Kesedihan atau keletihan Istri hari ini sangat valid. Sampaikan keluh lelahmu pada Suami, agar kita bisa berbagi beban dan berpelukan lebih erat.\"",
+                            "\"Jika dunia luar terasa berisik dan melelahkan, ketahuilah bahwa pelukan penuh kasih Suami di rumah siap menyambutmu dengan aman.\""
+                        ];
+                        quoteText = quotes[Math.floor((Date.now() / 86400000) % quotes.length)];
+                    } else if (latestMoodScore === 3 || latestMoodScore === 4) {
+                        const quotes = [
+                            "\"Dalam ketenangan hari yang biasa ini, mari luangkan waktu untuk bersyukur and saling menatap mata dengan penuh kehangatan.\"",
+                            "\"Setiap langkah tenang yang kita jalani hari ini membawa energi yang baik bagi pemulihan jiwa raga bersama.\""
+                        ];
+                        quoteText = quotes[Math.floor((Date.now() / 86400000) % quotes.length)];
+                    } else if (latestMoodScore === 5) {
+                        const quotes = [
+                            "\"Luar biasa cantiknya senyuman dan tawa ceriamu hari ini! Energi bahagia Istri adalah sinar mentari yang menghangatkan seisi rumah.\"",
+                            "\"Melihat Istri tersenyum bahagia adalah kebahagiaan terbesar bagi Suami. Mari terus rawat momen indah ini bersama!\""
+                        ];
+                        quoteText = quotes[Math.floor((Date.now() / 86400000) % quotes.length)];
+                    } else {
+                        // Default onboarding state
+                        quoteText = "\"Setiap perjalanan baru membutuhkan kelembutan hati dan waktu untuk bertumbuh. Terima kasih sudah melangkah dengan penuh cinta bersama pasangan hari ini.\"";
+                    }
+                }
+                
+                quoteEl.innerHTML = quoteText;
+            }
+
+            container.innerHTML = "";
+            list.forEach(item => {
+                const isChecked = activeChecklist[item.id] ? "checked" : "";
+                const strikeStyle = activeChecklist[item.id] ? "text-decoration: line-through; color: #9CA3AF;" : "";
+                const chkElement = document.createElement('label');
+                chkElement.style.cssText = "display: flex; align-items: flex-start; gap: 10px; font-size: 13px; cursor: pointer; font-weight: 500; margin-bottom: 2px;";
+                chkElement.innerHTML = `
+                    <input type="checkbox" id="db-${item.id}" ${isChecked} style="width: 17px; height: 17px; accent-color: #3A77B8; margin-top: 2px;" onchange="toggleDashboardChecklistItem('${item.id}')">
+                    <span id="db-span-${item.id}" style="${strikeStyle}">${item.text}</span>
+                `;
+                container.appendChild(chkElement);
+            });
+        }
+
+        function toggleDashboardChecklistItem(id) {
+            const chk = document.getElementById('db-' + id);
+            const span = document.getElementById('db-span-' + id);
+            
+            if (chk.checked) {
+                if (span) {
+                    span.style.textDecoration = 'line-through';
+                    span.style.color = '#9CA3AF';
+                }
+                activeChecklist[id] = true;
+            } else {
+                if (span) {
+                    span.style.textDecoration = 'none';
+                    span.style.color = '#374151';
+                }
+                activeChecklist[id] = false;
+            }
+            localStorage.setItem(KEY_CHECKLIST, JSON.stringify(activeChecklist));
+            
+            // Sync with main guidelines checklist if rendered
+            const mainChk = document.getElementById(id);
+            if (mainChk) {
+                mainChk.checked = chk.checked;
+                const parent = mainChk.closest && mainChk.closest('.todo-item');
+                if (parent) {
+                    if (chk.checked) parent.classList.add('checked');
+                    else parent.classList.remove('checked');
+                }
+            }
+        }
+
+        function setDashboardMoodTab(tab) {
+            activeDashboardMoodTab = tab;
+            const motherBtn = document.getElementById('db-tab-mother');
+            const fatherBtn = document.getElementById('db-tab-father');
+            if (motherBtn && fatherBtn) {
+                if (tab === 'mother') {
+                     motherBtn.style.backgroundColor = 'white';
+                     motherBtn.style.color = '#3A77B8';
+                     motherBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+                     
+                     fatherBtn.style.backgroundColor = 'transparent';
+                     fatherBtn.style.color = '#64748B';
+                     fatherBtn.style.boxShadow = 'none';
+                } else {
+                     fatherBtn.style.backgroundColor = 'white';
+                     fatherBtn.style.color = '#3A77B8';
+                     fatherBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+                     
+                     motherBtn.style.backgroundColor = 'transparent';
+                     motherBtn.style.color = '#64748B';
+                     motherBtn.style.boxShadow = 'none';
+                }
+            }
+            renderDashboardMoodChart();
+        }
+
+        function renderDashboardMoodChart() {
+            const visualContainer = document.getElementById('dashboard-mood-history-visual');
+            if (!visualContainer) return;
+            
+            visualContainer.innerHTML = "";
+            const recordsToUse = activeDashboardMoodTab === 'mother' ? moodRecords : fatherMoodRecords;
+            const last7 = recordsToUse.slice(-7);
+            
+            if (last7.length === 0) {
+                const labelName = activeDashboardMoodTab === 'mother' ? "Istri" : "Suami";
+                visualContainer.innerHTML = `<p style='text-align: center; width: 100%; color: #9CA3AF; font-size: 11.5px; margin-top: 30px;'>Belum ada rekaman mood ${labelName}.<br>Silakan catat di menu Jurnal Mood.</p>`;
+                return;
+            }
+
+            const emojiMap = {
+                1: "😭",
+                2: "☹️",
+                3: "😐",
+                4: "🙂",
+                5: "😄"
+            };
+
+            last7.forEach(record => {
+                const column = document.createElement('div');
+                column.className = "chart-column";
+                column.style.cssText = "flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%;";
+                
+                const heightPercent = record.score * 20; // 5 -> 100%, 1 -> 20%
+                
+                column.innerHTML = `
+                    <span style="font-size: 11px; margin-bottom: 3px;">${emojiMap[record.score] || '😐'}</span>
+                    <div class="chart-bar score-${record.score}" style="height: ${heightPercent}%; width: 100%; max-width: 14px; border-radius: 4px 4px 0 0;" title="${record.note || 'Tidak ada catatan'}"></div>
+                    <span style="font-size: 8px; font-weight: 700; color: #9CA3AF; margin-top: 4px;">${record.label}</span>
+                `;
+                visualContainer.appendChild(column);
+            });
+        }
+
+        function updateDynamicMoodAnalysis() {
+            const avgMotherEl = document.getElementById('analysis-avg-mother');
+            const emojiMotherEl = document.getElementById('analysis-emoji-mother');
+            const avgFatherEl = document.getElementById('analysis-avg-father');
+            const emojiFatherEl = document.getElementById('analysis-emoji-father');
+            const findingsEl = document.getElementById('analysis-findings-text');
+
+            if (!avgMotherEl || !avgFatherEl || !findingsEl) return;
+
+            const emojiMap = {
+                1: "😭",
+                2: "☹️",
+                3: "😐",
+                4: "🙂",
+                5: "😄"
+            };
+
+            const getEmoji = (score) => {
+                const rounded = Math.round(score);
+                return emojiMap[rounded] || "😐";
+            };
+
+            // Mother averages
+            let mSum = 0;
+            let mCount = moodRecords.length;
+            moodRecords.forEach(r => mSum += r.score);
+            const mAvg = mCount > 0 ? (mSum / mCount) : 0;
+
+            // Father averages
+            let fSum = 0;
+            let fCount = fatherMoodRecords.length;
+            fatherMoodRecords.forEach(r => fSum += r.score);
+            const fAvg = fCount > 0 ? (fSum / fCount) : 0;
+
+            if (mCount > 0) {
+                avgMotherEl.textContent = `${mAvg.toFixed(1)} / 5`;
+                emojiMotherEl.textContent = getEmoji(mAvg);
+            } else {
+                avgMotherEl.textContent = "-";
+                emojiMotherEl.textContent = "";
+            }
+
+            if (fCount > 0) {
+                avgFatherEl.textContent = `${fAvg.toFixed(1)} / 5`;
+                emojiFatherEl.textContent = getEmoji(fAvg);
+            } else {
+                avgFatherEl.textContent = "-";
+                emojiFatherEl.textContent = "";
+            }
+
+            // Trend analysis: We can group by day of the week
+            // 0 = Sunday, 1 = Monday, etc.
+            const idDays = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+            
+            // Collect day-of-week scores
+            let motherDayScores = Array(7).fill(0).map(() => []);
+            let fatherDayScores = Array(7).fill(0).map(() => []);
+
+            moodRecords.forEach(r => {
+                if (r.timestamp) {
+                    const d = new Date(r.timestamp).getDay();
+                    motherDayScores[d].push(r.score);
+                }
+            });
+
+            fatherMoodRecords.forEach(r => {
+                if (r.timestamp) {
+                    const d = new Date(r.timestamp).getDay();
+                    fatherDayScores[d].push(r.score);
+                }
+            });
+
+            // Calculate average for each day
+            let motherDayAvgs = motherDayScores.map((scores, idx) => {
+                if (scores.length === 0) return { dayIndex: idx, avg: null };
+                const sum = scores.reduce((a, b) => a + b, 0);
+                return { dayIndex: idx, avg: sum / scores.length };
+            });
+
+            let fatherDayAvgs = fatherDayScores.map((scores, idx) => {
+                if (scores.length === 0) return { dayIndex: idx, avg: null };
+                const sum = scores.reduce((a, b) => a + b, 0);
+                return { dayIndex: idx, avg: sum / scores.length };
+            });
+
+            // Filter out nulls
+            const validMotherDays = motherDayAvgs.filter(item => item.avg !== null);
+            const validFatherDays = fatherDayAvgs.filter(item => item.avg !== null);
+
+            let findingsHTML = "";
+
+            if (validMotherDays.length === 0 && validFatherDays.length === 0) {
+                // Mock/placeholder trend description with guidance to input data
+                findingsHTML = "<strong>Belum ada pola unik terdeteksi:</strong> Silakan tambahkan beberapa rekaman harian Istri atau Suami di menu Jurnal Mood. Pola fluktuasi mingguan (seperti kecenderungan mood menurun pada hari tertentu) akan dianalisis secara bernilai medis secara instan di sini.";
+            } else {
+                let dipDaysStr = [];
+                
+                // Sort to find lowest
+                if (validMotherDays.length > 0) {
+                    const lowestMother = [...validMotherDays].sort((a,b) => a.avg - b.avg)[0];
+                    const dayName = idDays[lowestMother.dayIndex];
+                    if (lowestMother.avg < 3.5) {
+                        dipDaysStr.push(`Suasana hati <strong>Istri</strong> cenderung mengalami penurunan (dip) paling rentan pada hari <strong>${dayName}</strong> dengan rata-rata ${lowestMother.avg.toFixed(1)}/5, yang mencerminkan fase kelelahan siklus tengah pekan.`);
+                    } else {
+                        dipDaysStr.push(`Suasana hati <strong>Istri</strong> relatif stabil secara keseluruhan, dengan melandai ringan terendah di hari <strong>${dayName}</strong> (${lowestMother.avg.toFixed(1)}/5).`);
+                    }
+                }
+
+                if (validFatherDays.length > 0) {
+                    const lowestFather = [...validFatherDays].sort((a,b) => a.avg - b.avg)[0];
+                    const dayName = idDays[lowestFather.dayIndex];
+                    if (lowestFather.avg < 3.5) {
+                        dipDaysStr.push(`Tingkat ketahanan emosi <strong>Suami</strong> juga terpantau cenderung lebih sensitif / lelah di hari <strong>${dayName}</strong> (rata-rata ${lowestFather.avg.toFixed(1)}/5), biasanya terpicu beban kumulatif.`);
+                    } else {
+                        dipDaysStr.push(`Tingkat energi <strong>Suami</strong> secara umum stabil terjaga secara berkala, dengan titik terendah di hari <strong>${dayName}</strong> (${lowestFather.avg.toFixed(1)}/5).`);
+                    }
+                }
+
+                findingsHTML = dipDaysStr.join(" ") + "<br><br>🚨 <strong>Rencana Tindakan:</strong> Pada hari-hari potensi titik lemah terdeteksi, luangkan waktu ekstra untuk saling menyokong, delegasikan tugas dengan bijak, dan jalankan strategi menjaga kesehatan mental di bawah ini.";
+            }
+
+            findingsEl.innerHTML = findingsHTML;
+        }
+
+        // -----------------------------------------
+        // EPDS RENDER & CALCULATION LOGIC
+        // -----------------------------------------
+        function renderEPDSForm() {
+            const container = document.getElementById('epds-questions-container');
+            container.innerHTML = "";
+
+            epdsArr.forEach((qObj, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = "epds-item";
+                questionElement.id = `epds-q-block-${qObj.id}`;
+                
+                let optionsHTML = "";
+                qObj.options.forEach((opt, optIdx) => {
+                    optionsHTML += `
+                        <div class="option-wrapper">
+                            <label class="epds-option" id="lbl-q-${qObj.id}-o-${optIdx}">
+                                <input type="radio" name="q-${qObj.id}" value="${opt.s}" required onclick="selectRadioVisual(${qObj.id}, ${optIdx})">
+                                <span>${opt.t}</span>
+                            </label>
+                        </div>
+                    `;
+                });
+
+                questionElement.innerHTML = `
+                    <div class="epds-q">
+                        <span class="epds-num">${index + 1}</span>
+                        <span>${qObj.q}</span>
+                    </div>
+                    ${optionsHTML}
+                `;
+                container.appendChild(questionElement);
+            });
+        }
+
+        function selectRadioVisual(qId, optIdx) {
+            // Remove selection class on siblings
+            for(let i=0; i<4; i++) {
+                const el = document.getElementById(`lbl-q-${qId}-o-${i}`);
+                if (el) el.classList.remove('selected');
+            }
+            // Add on selected
+            document.getElementById(`lbl-q-${qId}-o-${optIdx}`).classList.add('selected');
+        }
+
+        function getRiskBand(score) {
+            if (score <= 9) return { tier: "Rendah", desc: "Tingkat stres cenderung masih normal. Cukup dampingi istri secara rutin dan berikan ruang baginya beristirahat yang mumpuni." };
+            if (score <= 12) return { tier: "Ringan", desc: "Berisiko mengalami baby blues hingga depresi postpartum ringan. Disarankan membagi beban pengasuhan bayi secara lebih berkala." };
+            if (score <= 18) return { tier: "Sedang", desc: "Indikasi depresi sedang. Ambil alih urusan rumah tangga primer agar istri dapat beristirahat nyaman, dan pertimbangkan berdiskusi ke bidan/dokter." };
+            return { tier: "Berat", desc: "Indikator depresi postpartum berat. Anda mutlak butuh membujuk istri untuk dikonsultasikan secara santun dengan psikolog klinis atau psikiater terdekat." };
+        }
+
+        function calculateEPDS(event) {
+            event.preventDefault();
+            
+            let total = 0;
+            let valQ10 = 0;
+            
+            epdsArr.forEach(qObj => {
+                const radios = document.getElementsByName(`q-${qObj.id}`);
+                let val = 0;
+                radios.forEach(r => {
+                    if (r.checked) {
+                        val = parseInt(r.value);
+                    }
+                });
+                total += val;
+                if (qObj.id === 10) {
+                    valQ10 = val;
+                }
+            });
+
+            // Save records
+            const hasSelfHarm = valQ10 >= 1;
+            const dateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            
+            const newRecord = {
+                score: total,
+                date: dateStr,
+                timestamp: Date.now(),
+                hasSelfHarmRisk: hasSelfHarm
+            };
+
+            epdsRecords.push(newRecord);
+            localStorage.setItem(KEY_EPDS, JSON.stringify(epdsRecords));
+
+            // Display Results
+            const resCard = document.getElementById('epds-result-card');
+            const scoreNum = document.getElementById('epds-score-num');
+            const resTitle = document.getElementById('epds-res-title');
+            const resBadge = document.getElementById('epds-result-badge');
+            const resText = document.getElementById('epds-result-text');
+            const shWarning = document.getElementById('epds-sh-warning');
+
+            scoreNum.textContent = total;
+            resCard.classList.remove('d-none');
+
+            const band = getRiskBand(total);
+            resBadge.textContent = band.tier;
+            resText.textContent = band.desc;
+
+            // Update badge color
+            resBadge.style.color = "white";
+            if (total <= 9) resBadge.style.backgroundColor = "var(--accent-dark)";
+            else if (total <= 12) resBadge.style.backgroundColor = "var(--warning)";
+            else resBadge.style.backgroundColor = "var(--danger)";
+
+            if (hasSelfHarm) {
+                shWarning.classList.remove('d-none');
+            } else {
+                shWarning.classList.add('d-none');
+            }
+
+            resCard.scrollIntoView({ behavior: 'smooth' });
+            updateDashboardSummary();
+        }
+
+        // -----------------------------------------
+        // PERSONALIZED GUIDE LOGIC
+        // -----------------------------------------
+        function renderTailoredSupportGuidelines() {
+            const grid = document.getElementById('panduan-grid-content');
+            const emptyPrompt = document.getElementById('panduan-empty-prompt');
+            const subTitle = document.getElementById('panduan-desc');
+
+            grid.innerHTML = "";
+
+            let latestScore = -1;
+            let shRisk = false;
+
+            if (epdsRecords.length > 0) {
+                const latest = epdsRecords[epdsRecords.length - 1];
+                latestScore = latest.score;
+                shRisk = latest.hasSelfHarmRisk;
+                emptyPrompt.classList.add('d-none');
+                
+                const band = getRiskBand(latestScore);
+                subTitle.innerHTML = `Beradasarkan skrining terakhir pada <b>${latest.date}</b>, istri Anda berada dalam kategori risiko <strong>${band.tier} (${latestScore} Poin)</strong>. Berikut panduan langkah praktis untuk Anda:`;
+            } else {
+                emptyPrompt.classList.remove('d-none');
+                subTitle.textContent = "Silakan isi panel skrining di gawai Anda agar kami dapat mengoordinasikan panduan pendampingan kustom di bawah ini.";
+                return;
+            }
+
+            // Determine checklists
+            const EmotionalChecklist = [];
+            const InstrumentalChecklist = [];
+            const InformationalChecklist = [];
+            const HealthChecklist = [];
+
+            if (latestScore <= 9 && !shRisk) {
+                // Rendah
+                EmotionalChecklist.push(
+                    "Puji istri minimal 2x sehari (Contoh: 'Terima kasih atas perjuangan luar biasamu', 'Kamu sangat berharga untukku').",
+                    "Luangkan waktu minimal 15 menit mendengarkan ceritanya tanpa menyela atau menghakimi."
+                );
+                InstrumentalChecklist.push(
+                    "Bersihkan dapur atau rapikan tumpukan cucian baju sebelum Anda beristirahat malam.",
+                    "Siapkan air hangat untuk mandi sore istri guna merilekskan otot-ototnya."
+                );
+                InformationalChecklist.push(
+                    "Mengobrol santai mengenai perkembangan pemulihan nifas istri bersama-sama.",
+                    "Catat jadwal kontrol nifas atau janji temu dokter berikutnya di kalender bersama."
+                );
+                HealthChecklist.push(
+                    "Pastikan istri meminum vitamin penambah darah / kalsium nifas yang dianjurkan dokter.",
+                    "Dampingi istri untuk melakukan peregangan ringan di kasur selama 5-10 menit."
+                );
+            } else if (latestScore <= 12 && !shRisk) {
+                // Ringan
+                EmotionalChecklist.push(
+                    "Validasi emosi istri yang lelah. Jangan didebat jika ia tampak menggerutu.",
+                    "Berikan pelukan hangat tanpa paksaan minimal 20 detik untuk merangsang hormon oksitosin alami."
+                );
+                InstrumentalChecklist.push(
+                    "Bantu ciptakan lingkungan kamar yang sepi dan redup agar istri dapat tidur lelap minimal 4-6 jam terus-menerus tanpa gangguan.",
+                    "Belikan atau pesankan makanan kesukaannya di sela jam istirahatnya."
+                );
+                InformationalChecklist.push(
+                    "Mengulik informasi nifas atau psikoedukasi tentang pemulihan emosi pascamelahirkan / kehilangan.",
+                    "Mencari info kontak darurat psikolog atau komunitas pendukung kesehatan mental ibu terdekat."
+                );
+                HealthChecklist.push(
+                    "Ajak istri jalan pagi berdua mengitari pekarangan rumah selama 15 menit untuk asupan vitamin D matahari.",
+                    "Dampingi kontrol nifas ke bidan di minggu ke-2 dan ke-4 pasca-salin."
+                );
+            } else {
+                // Sedang / Berat / Self-harm
+                EmotionalChecklist.push(
+                    "Katakan pesan penegasan reguler: 'Kita adalah tim, aku ada di sini bersamamu melewati masa sulit ini. Kita tidak sendiri.'",
+                    "Kurangi paparan kunjungan tamu luar atau keluarga besar yang memberikan komentar menyudutkan bagi kesejahteraan emosi istri."
+                );
+                InstrumentalChecklist.push(
+                    "Ambil alih pekerjaan rumah tangga seutuhnya (menyapu, mengepel, mencuci pakaian, merapikan ruangan) secara mandiri.",
+                    "Siapkan porsi makan 3 kali sehari dan letakkan di sisinya. Suapi secara lembut jika ia terlalu lemas."
+                );
+                InformationalChecklist.push(
+                    "Daftarkan janji konsultasi psikologis via telemedicine online (Halodoc/SehatQ) jika ia menolak bepergian fisik.",
+                    "Petakan rute tercepat menuju RS terdekat yang menyediakan layanan Poli Jiwa atau psikolog terpadu."
+                );
+                HealthChecklist.push(
+                    "Pantau ketat pola minum dan tidurnya. Apabila ia tidak tidur hingga 2 hari/malam berturut-turut, konsultasikan segera ke dokter.",
+                    "Lindungi gawai istri dari berita buruk atau desas-desus media sosial yang membuatnya makin cemas."
+                );
+            }
+
+            const sections = [
+                { title: "❤️ Dukungan Emosional", key: "emotional", list: EmotionalChecklist },
+                { title: "🧹 Dukungan Instrumental", key: "instrumental", list: InstrumentalChecklist },
+                { title: "📚 Dukungan Informasional", key: "informational", list: InformationalChecklist },
+                { title: "🩺 Keterlibatan Medis & Kesehatan", key: "health", list: HealthChecklist }
+            ];
+
+            sections.forEach((sect, sectIdx) => {
+                const card = document.createElement('div');
+                card.className = "card";
+                card.id = `support-card-${sect.key}`;
+                
+                let checkListHTML = "";
+                sect.list.forEach((itemText, itemIdx) => {
+                    const checkId = `chk_${sect.key}_${itemIdx}`;
+                    const isChecked = activeChecklist[checkId] ? "checked" : "";
+                    checkListHTML += `
+                        <div class="todo-item ${isChecked ? 'checked' : ''}" id="todo-container-${checkId}">
+                            <input type="checkbox" id="${checkId}" ${isChecked} onchange="toggleChecklistItem('${checkId}')">
+                            <label for="${checkId}">${itemText}</label>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <h3>${sect.title}</h3>
+                    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 4px;">
+                        ${checkListHTML}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleChecklistItem(id) {
+            const chk = document.getElementById(id);
+            const container = document.getElementById('todo-container-' + id);
+            
+            if (chk.checked) {
+                container.classList.add('checked');
+                activeChecklist[id] = true;
+            } else {
+                container.classList.remove('checked');
+                activeChecklist[id] = false;
+            }
+            localStorage.setItem(KEY_CHECKLIST, JSON.stringify(activeChecklist));
+        }
+
+        // -----------------------------------------
+        // JURNAL MOOD SELECTION & CHARTING
+        // -----------------------------------------
+        function selectMoodVal(score, buttonElement) {
+            currentSelectedMood = score;
+            // Clear sibling highlights
+            document.querySelectorAll('.mood-select-btn').forEach(btn => btn.classList.remove('active'));
+            // Set target active
+            buttonElement.classList.add('active');
+        }
+
+        function submitMoodEntry() {
+            if (currentSelectedMood === null) {
+                alert("Mohon pilih emoji suasana hati istri terlebih dahulu!");
+                return;
+            }
+
+            const note = document.getElementById('mood-comment').value.trim();
+            const dateObj = new Date();
+            const labelStr = `${dateObj.getDate()}/${dateObj.getMonth() + 1}`;
+            const dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+            const newMood = {
+                score: currentSelectedMood,
+                note: note,
+                label: labelStr,
+                date: dateStr,
+                timestamp: Date.now()
+            };
+
+            moodRecords.push(newMood);
+            // Limit records to last 30 entries
+            if (moodRecords.length > 30) moodRecords.shift();
+
+            localStorage.setItem(KEY_MOODS, JSON.stringify(moodRecords));
+
+            // Reset UI States
+            currentSelectedMood = null;
+            document.querySelectorAll('.mood-select-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('mood-comment').value = "";
+
+            renderMoodTrackingChart();
+            updateDashboardSummary();
+            alert("Suasana hati istri berhasil dicatat di Jurnal Suami!");
+        }
+
+        function renderMoodTrackingChart() {
+            const visualContainer = document.getElementById('mood-history-visual');
+            visualContainer.innerHTML = "";
+
+            // Slice last 7 entries for charting
+            const last7 = moodRecords.slice(-7);
+            
+            if (last7.length === 0) {
+                visualContainer.innerHTML = "<p style='text-align: center; width: 100%; color: var(--text-light); margin-bottom: 0;'>Belum ada rekaman suasana hati disimpan. Catat kondisi harian Anda di atas.</p>";
+                return;
+            }
+
+            const emojiMap = {
+                1: "😭",
+                2: "☹️",
+                3: "😐",
+                4: "🙂",
+                5: "😄"
+            };
+
+            last7.forEach((record, idx) => {
+                const column = document.createElement('div');
+                column.className = "chart-column";
+                column.id = `chart-col-${idx}`;
+                
+                // Chart score matches vertical height %
+                const heightPercent = record.score * 20; // 5 -> 100%, 1 -> 20%
+                
+                column.innerHTML = `
+                    <span class="chart-emoji">${emojiMap[record.score]}</span>
+                    <div class="chart-bar score-${record.score}" style="height: ${heightPercent}%;" title="${record.note || 'Tidak ada catatan'}"></div>
+                    <span class="chart-label">${record.label}</span>
+                `;
+                visualContainer.appendChild(column);
+            });
+        }
+
+        function switchMoodTab(tab) {
+            const motherBtn = document.getElementById('btn-tab-mother');
+            const fatherBtn = document.getElementById('btn-tab-father');
+            const motherSection = document.getElementById('mood-section-mother');
+            const fatherSection = document.getElementById('mood-section-father');
+
+            if (tab === 'mother') {
+                motherBtn.classList.add('active-tab');
+                motherBtn.classList.remove('text-gray-500');
+                fatherBtn.classList.remove('active-tab');
+                fatherBtn.classList.add('text-gray-500');
+                motherSection.classList.remove('d-none');
+                fatherSection.classList.add('d-none');
+                renderMoodTrackingChart();
+            } else {
+                fatherBtn.classList.add('active-tab');
+                fatherBtn.classList.remove('text-gray-500');
+                motherBtn.classList.remove('active-tab');
+                motherBtn.classList.add('text-gray-500');
+                motherSection.classList.add('d-none');
+                fatherSection.classList.remove('d-none');
+                renderFatherMoodTrackingChart();
+            }
+        }
+
+        function selectFatherMoodVal(score, buttonElement) {
+            currentSelectedFatherMood = score;
+            document.querySelectorAll('.father-mood-select-btn').forEach(btn => btn.classList.remove('active'));
+            buttonElement.classList.add('active');
+        }
+
+        function submitFatherMoodEntry() {
+            if (currentSelectedFatherMood === null) {
+                alert("Mohon pilih emoji suasana hati Suami terlebih dahulu!");
+                return;
+            }
+
+            const note = document.getElementById('father-mood-comment').value.trim();
+            const dateObj = new Date();
+            const labelStr = `${dateObj.getDate()}/${dateObj.getMonth() + 1}`;
+            const dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+            const newMood = {
+                score: currentSelectedFatherMood,
+                note: note,
+                label: labelStr,
+                date: dateStr,
+                timestamp: Date.now()
+            };
+
+            fatherMoodRecords.push(newMood);
+            if (fatherMoodRecords.length > 30) fatherMoodRecords.shift();
+
+            localStorage.setItem(KEY_FATHER_MOODS, JSON.stringify(fatherMoodRecords));
+
+            // Reset UI States
+            currentSelectedFatherMood = null;
+            document.querySelectorAll('.father-mood-select-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('father-mood-comment').value = "";
+
+            renderFatherMoodTrackingChart();
+            updateDashboardSummary();
+            alert("Suasana hati Suami berhasil dicatat di Jurnal!");
+        }
+
+        function renderFatherMoodTrackingChart() {
+            const visualContainer = document.getElementById('father-mood-history-visual');
+            if (!visualContainer) return;
+            visualContainer.innerHTML = "";
+
+            const last7 = fatherMoodRecords.slice(-7);
+            
+            if (last7.length === 0) {
+                visualContainer.innerHTML = "<p style='text-align: center; width: 100%; color: var(--text-light); margin-bottom: 0;'>Belum ada rekaman suasana hati disimpan. Catat kondisi harian Anda di atas.</p>";
+                return;
+            }
+
+            const emojiMap = {
+                1: "😭",
+                2: "☹️",
+                3: "😐",
+                4: "🙂",
+                5: "😄"
+            };
+
+            last7.forEach((record, idx) => {
+                const column = document.createElement('div');
+                column.className = "chart-column";
+                column.id = `father-chart-col-${idx}`;
+                
+                const heightPercent = record.score * 20;
+                
+                column.innerHTML = `
+                    <span class="chart-emoji">${emojiMap[record.score]}</span>
+                    <div class="chart-bar score-${record.score}" style="height: ${heightPercent}%;" title="${record.note || 'Tidak ada catatan'}"></div>
+                    <span class="chart-label">${record.label}</span>
+                `;
+                visualContainer.appendChild(column);
+            });
+        }
+
+        function triggerMedicalExport() {
+            const format = document.getElementById('export-format').value;
+            const type = document.getElementById('export-type').value;
+
+            if (format === 'csv') {
+                exportDataToCSV(type);
+            } else {
+                exportDataToPDF(type);
+            }
+        }
+
+        function exportDataToCSV(exportType) {
+            let csvRows = [];
+            // headers matching specifications
+            csvRows.push(["No", "Tanggal / Waktu", "Tipe Informasi", "Skor / Rating", "Status Risiko / Kategori", "Catatan Tambahan"].join(","));
+
+            let rowCount = 1;
+
+            if (exportType === 'all' || exportType === 'epds') {
+                epdsRecords.forEach((rec) => {
+                    const riskCategory = rec.score <= 9 ? "Normal (Risiko Rendah)" : rec.score <= 12 ? "Sedang (Risiko Ringan)" : "Tinggi (Risiko Berat)";
+                    const shString = rec.hasSelfHarmRisk ? "⚠️ POSITIF MENYAKITI DIRI" : "Negatif";
+                    csvRows.push([
+                        rowCount++,
+                        rec.date,
+                        "Skrining EPDS (Istri)",
+                        `${rec.score}/30`,
+                        `${riskCategory} (Melukai Diri: ${shString})`,
+                        "Skrining klinis terstandar"
+                    ].map(escapeCSVCell).join(","));
+                });
+            }
+
+            const emojiWord = { 1: "Sangat Buruk", 2: "Kurang Baik/Sedih", 3: "Biasa Saja", 4: "Cukup Baik", 5: "Sangat Tenang/Ceria" };
+
+            if (exportType === 'all' || exportType === 'mood' || exportType === 'only_wife_mood') {
+                moodRecords.forEach((rec) => {
+                    csvRows.push([
+                        rowCount++,
+                        rec.date || rec.label || "Harian",
+                        "Jurnal Mood Istri",
+                        `${rec.score}/5`,
+                        emojiWord[rec.score] || "-",
+                        rec.note || "Tidak ada catatan"
+                    ].map(escapeCSVCell).join(","));
+                });
+            }
+
+            if (exportType === 'all' || exportType === 'mood' || exportType === 'only_husband_mood') {
+                fatherMoodRecords.forEach((rec) => {
+                    csvRows.push([
+                        rowCount++,
+                        rec.date || rec.label || "Harian",
+                        "Jurnal Mood Suami",
+                        `${rec.score}/5`,
+                        emojiWord[rec.score] || "-",
+                        rec.note || "Tidak ada catatan"
+                    ].map(escapeCSVCell).join(","));
+                });
+            }
+
+            if (rowCount === 1) {
+                alert("Tidak ada data untuk diekspor pada cakupan ini.");
+                return;
+            }
+
+            const csvContent = "\uFEFF" + csvRows.join("\n"); // add BOM for Excel character encoding compatibility
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Laporan_Suami_Siaga_${exportType}_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function escapeCSVCell(val) {
+            if (val === undefined || val === null) return '""';
+            let str = String(val);
+            str = str.replace(/"/g, '""');
+            if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+                return `"${str}"`;
+            }
+            return str;
+        }
+
+        function exportDataToPDF(exportType) {
+            const { jsPDF } = window.jspdf || {};
+            if (!jsPDF) {
+                alert("Pustaka pembuatan PDF sedang memuat. Mengunduh filter versi Spreadsheet (CSV) sebagai gantinya.");
+                exportDataToCSV(exportType);
+                return;
+            }
+
+            const doc = new jsPDF();
+            let y = 20;
+
+            // PDF Theme Header styling
+            doc.setFont("Helvetica", "bold");
+            doc.setFontSize(16);
+            doc.setTextColor(58, 119, 184); // Theme primary #3A77B8
+            doc.text("LAPORAN RINGKASAN KESEHATAN PASCASALIN", 14, y);
+            y += 8;
+
+            doc.setFontSize(10);
+            doc.setFont("Helvetica", "normal");
+            doc.setTextColor(107, 114, 128);
+            doc.text("Aplikasi Damping Seimbang: Suami Siaga (Postpartum Depression Companion)", 14, y);
+            y += 6;
+            doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')} | Pengguna: Suami`, 14, y);
+            y += 6;
+
+            // Draw Divider Line
+            doc.setDrawColor(229, 231, 235);
+            doc.line(14, y, 196, y);
+            y += 10;
+
+            if (exportType === 'all' || exportType === 'epds') {
+                doc.setFont("Helvetica", "bold");
+                doc.setFontSize(13);
+                doc.setTextColor(58, 119, 184);
+                doc.text("1. Riwayat Skrining EPDS (Istri)", 14, y);
+                y += 6;
+
+                doc.setFontSize(9);
+                doc.setTextColor(110, 110, 110);
+                doc.setFont("Helvetica", "oblique");
+                doc.text("Hasil skrining didasarkan pada skala Edinburgh Postnatal Depression Scale (EPDS).", 14, y);
+                y += 8;
+
+                // Headers
+                doc.setFont("Helvetica", "bold");
+                doc.setTextColor(55, 65, 81);
+                doc.text("Tanggal", 14, y);
+                doc.text("Skor", 50, y);
+                doc.text("Kategori Kelayakan Medis", 75, y);
+                doc.text("Pikiran Menyakiti Diri (Q10)", 135, y);
+                y += 4;
+                doc.line(14, y, 196, y);
+                y += 6;
+
+                doc.setFont("Helvetica", "normal");
+                if (epdsRecords.length === 0) {
+                    doc.text("Belum ada riwayat skrining EPDS yang disimpan.", 14, y);
+                    y += 10;
+                } else {
+                    epdsRecords.forEach((rec) => {
+                        if (y > 270) { doc.addPage(); y = 20; }
+                        doc.text(rec.date || "Harian", 14, y);
+                        doc.text(`${rec.score} / 30`, 50, y);
+                        
+                        const bandText = rec.score <= 9 ? "Normal (Risiko Rendah)" : rec.score <= 12 ? "Sedang (Risiko Ringan)" : "Tinggi (Segera Hubungi Psikolog/Ahli)";
+                        doc.text(bandText, 75, y);
+                        doc.text(rec.hasSelfHarmRisk ? "YA (🚨 PERLU SIAGA MEDIS)" : "Aman (Negatif)", 135, y);
+                        y += 8;
+                    });
+                    y += 4;
+                }
+            }
+
+            const emojiWord = { 1: "Sangat Buruk", 2: "Sedih/Murung", 3: "Biasa", 4: "Cukup Baik", 5: "Sangat Baik/Tenang" };
+
+            const showWifeMood = (exportType === 'all' || exportType === 'mood' || exportType === 'only_wife_mood');
+            const showHusbandMood = (exportType === 'all' || exportType === 'mood' || exportType === 'only_husband_mood');
+
+            if (showWifeMood || showHusbandMood) {
+                if (y > 240) { doc.addPage(); y = 20; }
+
+                doc.setFont("Helvetica", "bold");
+                doc.setFontSize(13);
+                doc.setTextColor(58, 119, 184);
+                
+                let titleStr = "2. Catatan Harian Jurnal Suasana Hati Harian";
+                if (exportType === 'only_wife_mood') titleStr = "2. Catatan Jurnal Mood Istri";
+                if (exportType === 'only_husband_mood') titleStr = "2. Catatan Jurnal Mood Suami";
+                doc.text(titleStr, 14, y);
+                y += 6;
+
+                doc.setFontSize(9);
+                doc.setTextColor(110, 110, 110);
+                doc.setFont("Helvetica", "oblique");
+                
+                let descStr = "Menunjukkan fluktuasi harian emosi Istri (di bawah amatan suami) dan ketahanan emosional Suami.";
+                if (exportType === 'only_wife_mood') descStr = "Menunjukkan fluktuasi harian emosi Istri (di bawah amatan suami).";
+                else if (exportType === 'only_husband_mood') descStr = "Menunjukkan ketahanan emosional Suami.";
+                doc.text(descStr, 14, y);
+                y += 8;
+
+                // MOTHER MOOD SECTION IN PDF
+                if (showWifeMood) {
+                    doc.setFontSize(11);
+                    doc.setFont("Helvetica", "bold");
+                    doc.setTextColor(55, 65, 81);
+                    doc.text("✿ Jurnal Mood Istri:", 14, y);
+                    y += 6;
+
+                    doc.setFontSize(9);
+                    doc.text("Tanggal", 14, y);
+                    doc.text("Skor Suasana Hati", 50, y);
+                    doc.text("Catatan Gejala & Keterangan", 90, y);
+                    y += 3;
+                    doc.line(14, y, 196, y);
+                    y += 6;
+
+                    doc.setFont("Helvetica", "normal");
+                    if (moodRecords.length === 0) {
+                        doc.text("Belum ada catatan jurnal mood Istri disimpan.", 14, y);
+                        y += 10;
+                    } else {
+                        moodRecords.forEach((rec) => {
+                            if (y > 270) { doc.addPage(); y = 20; }
+                            doc.text(rec.date || rec.label || "Harian", 14, y);
+                            doc.text(`${rec.score}/5 (${emojiWord[rec.score] || '-'})`, 50, y);
+                            
+                            const textStr = rec.note || "Tidak ada catatan tambahan.";
+                            const splitText = doc.splitTextToSize(textStr, 105);
+                            doc.text(splitText, 90, y);
+                            y += Math.max(8, (splitText.length * 5) + 3);
+                        });
+                        y += 6;
+                    }
+                }
+
+                // FATHER MOOD SECTION IN PDF
+                if (showHusbandMood) {
+                    if (y > 230) { doc.addPage(); y = 20; }
+
+                    doc.setFontSize(11);
+                    doc.setFont("Helvetica", "bold");
+                    doc.setTextColor(55, 65, 81);
+                    doc.text("👨‍🍼 Jurnal Mood Suami:", 14, y);
+                    y += 6;
+
+                    doc.setFontSize(9);
+                    doc.text("Tanggal", 14, y);
+                    doc.text("Tingkat Ketenangan", 50, y);
+                    doc.text("Catatan Kelelahan & Ketahanan", 90, y);
+                    y += 3;
+                    doc.line(14, y, 196, y);
+                    y += 6;
+
+                    doc.setFont("Helvetica", "normal");
+                    if (fatherMoodRecords.length === 0) {
+                        doc.text("Belum ada catatan jurnal mood Suami disimpan.", 14, y);
+                        y += 10;
+                    } else {
+                        fatherMoodRecords.forEach((rec) => {
+                            if (y > 270) { doc.addPage(); y = 20; }
+                            doc.text(rec.date || rec.label || "Harian", 14, y);
+                            doc.text(`${rec.score}/5 (${emojiWord[rec.score] || '-'})`, 50, y);
+                            
+                            const textStr = rec.note || "Tidak ada catatan tambahan.";
+                            const splitText = doc.splitTextToSize(textStr, 105);
+                            doc.text(splitText, 90, y);
+                            y += Math.max(8, (splitText.length * 5) + 3);
+                        });
+                    }
+                }
+            }
+
+            // Save PDF
+            doc.save(`Laporan_Pemantauan_Medis_Suami_Siaga_${Date.now()}.pdf`);
+        }
+
+        // -----------------------------------------
+        // REAL-LIFE CALENDAR INTEGRATION LOGIC
+        // -----------------------------------------
+        function downloadICSFile() {
+            const title = "Evaluasi Mandiri Jurnal Mood Damping Seimbang";
+            const description = "Pengingat harian untuk mencatat stabilitas emosi Istri pascasalin dan tingkat kelelahan Suami di aplikasi Damping Seimbang.";
+            
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            
+            const startDate = `${year}${month}${date}T090000`; // 09:00 AM
+            const endDate = `${year}${month}${date}T093000`; // 09:30 AM
+            
+            const icsContent = [
+                "BEGIN:VCALENDAR",
+                "VERSION:2.0",
+                "PRODID:-//Damping Seimbang//Mood Journal Reminder//ID",
+                "BEGIN:VEVENT",
+                `UID:${Date.now()}@dampingseimbang.com`,
+                `DTSTAMP:${year}${month}${date}T000000Z`,
+                `DTSTART:${startDate}`,
+                `DTEND:${endDate}`,
+                `SUMMARY:${title}`,
+                `DESCRIPTION:${description}`,
+                "RRULE:FREQ=DAILY;INTERVAL=1",
+                "END:VEVENT",
+                "END:VCALENDAR"
+            ].join("\r\n");
+            
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "Pengingat_Jurnal_Mood_Harian.ics";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function addToGoogleCalendarReminder() {
+            const title = encodeURIComponent("Evaluasi Jurnal Mood - Damping Seimbang");
+            const details = encodeURIComponent("Pengingat harian otomatis di kalender nyata Anda untuk mencatat stabilitas emosi Istri dan ketahanan Suami di aplikasi.");
+            
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            
+            const startTime = `${year}${month}${date}T090000`;
+            const endTime = `${year}${month}${date}T093000`;
+            
+            const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&details=${details}&recur=RRULE:FREQ=DAILY;INTERVAL=1`;
+            window.open(gCalUrl, '_blank');
+        }
+
+        // -----------------------------------------
+        // BOX BREATHING LOGIC
+        // -----------------------------------------
+        let isBreathingActive = false;
+        let breathingTimer = null;
+        let breathingCycleState = 0; // 0: inhale, 1: hold in, 2: exhale, 3: hold out
+
+        function toggleBreathingGuide() {
+            const btn = document.getElementById('btn-start-breath');
+            const node = document.getElementById('breath-node');
+            const desc = document.getElementById('breath-desc-instructions');
+
+            if (isBreathingActive) {
+                // Stop breathing
+                clearInterval(breathingTimer);
+                isBreathingActive = false;
+                btn.textContent = "Mulai Bernapas";
+                btn.className = "btn btn-accent";
+                node.className = "breath-circle";
+                node.textContent = "SIAP?";
+                desc.textContent = "Latihan 4 Fase: Tarik (4s) - Tahan (4s) - Hembus (4s) - Tahan (4s)";
+            } else {
+                // Start breathing
+                isBreathingActive = true;
+                btn.textContent = "Berhenti";
+                btn.className = "btn btn-danger";
+                
+                breathingCycleState = 0;
+                runBreathingCycle();
+                breathingTimer = setInterval(runBreathingCycle, 4000);
+            }
+        }
+
+        function runBreathingCycle() {
+            const node = document.getElementById('breath-node');
+            const desc = document.getElementById('breath-desc-instructions');
+
+            // Reset current state styles
+            node.className = "breath-circle";
+
+            if (breathingCycleState === 0) {
+                node.classList.add('inhale');
+                node.textContent = "TARIK";
+                desc.textContent = "🌀 Tarik napas secara perlahan lewat hidung... Rasakan dada membusung.";
+                breathingCycleState = 1;
+            } else if (breathingCycleState === 1) {
+                node.classList.add('hold');
+                node.textContent = "TAHAN";
+                desc.textContent = "🔒 Kunci jalur napas Anda sejenak. Tenangkan detak jantung Anda.";
+                breathingCycleState = 2;
+            } else if (breathingCycleState === 2) {
+                node.classList.add('exhale');
+                node.textContent = "HEMBUS";
+                desc.textContent = "🌬️ Hembuskan melalui mulut perlahan selama 4 detik penuh...";
+                breathingCycleState = 3;
+            } else if (breathingCycleState === 3) {
+                node.classList.add('hold-out');
+                node.textContent = "TAHAN";
+                desc.textContent = "🧘 Tahan kondisi rongga paru-paru kosong Anda sebebas mungkin.";
+                breathingCycleState = 0;
+            }
+        }
+
+        // -----------------------------------------
+        // OFFLINE CHATBOT & GEMINI API INTEGRATION
+        // -----------------------------------------
+        // Toggle Panel view
+        function openMiniChatPanel() {
+            document.getElementById('main-chat-panel').classList.add('open');
+            document.getElementById('mobile-chat-shield').classList.add('open');
+        }
+
+        function closeMiniChatPanel() {
+            document.getElementById('main-chat-panel').classList.remove('open');
+            document.getElementById('mobile-chat-shield').classList.remove('open');
+        }
+
+        function toggleChat() {
+            const panel = document.getElementById('main-chat-panel');
+            panel.classList.toggle('open');
+        }
+
+        function handleChatEnter(event) {
+            if (event.key === 'Enter') {
+                submitUserChatQuery();
+            }
+        }
+
+        // Crisis local keyword matcher
+        function isLocalCrisis(phrase) {
+            const cleaned = phrase.toLowerCase();
+            const keywordList = [
+                "bunuh diri", "suicide", "mati", "menyerah", "mampus", "ingin mati", "nyawa", "pengen mati",
+                "menyakiti diri", "lompat", "racun", "sayat", "mengakhiri hidup", "gantung diri", "potong urat"
+            ];
+            return keywordList.some(k => cleaned.includes(k));
+        }
+
+        // Offline bot responses catalog
+        function getOfflineBotMessage(phrase) {
+            const clean = phrase.toLowerCase();
+            if (clean.includes("skrining") || clean.includes("epds")) {
+                return "Skrining EPDS (10 pertanyaan) membantu menyaring risiko kecemasan/depresi pasca-salin. Anda disarankan melatih skrining ini berkala setiap 7 atau 14 hari sekali guna memantau perbaikan kondisi emosional istri.";
+            }
+            if (clean.includes("stres") || clean.includes("lelah") || clean.includes("capek") || clean.includes("penat")) {
+                return "Kelelahan ekstrem sangat wajar terjadi pada momentum masa perbaikan fase nifas bayi. Jika keadaan kian berat, silakan luangkan 3 menit untuk latihan peredam kecemasan (Box Breathing) di menu 'Ruang Suami' gawai Anda.";
+            }
+            if (clean.includes("gejala") || clean.includes("gejala ppd") || clean.includes("tanda") || clean.includes("ciri")) {
+                return "Gejala umum postpartum depression (PPD) di antaranya menangis berkepanjangan tanpa pemicu luar biasa, insomnia meskipun bayi dalam keadaan pulas, hingga kesulitan membangun ikatan emosi dengan bayi. Skrining di menu EPDS memberi klasifikasi awal akurat.";
+            }
+            if (clean.includes("bantu") || clean.includes("cara menolong") || clean.includes("tips") || clean.includes("solusi")) {
+                return "Bantuan paling mujarab mencakup penyediaan tidur berkualitas bagi istri minimal (4 jam berturut-turut), menghentikan interupsi negatif pelayat luar, serta memberi apresiasi lembut lisan yang menyatakan keberadaannya didukung penuh.";
+            }
+            return "Terima kasih atas keluh kesah Anda, Suami. Selaku pendamping krisis utama, mari bersikap terbuka dan asertif mendengar perasaan Istri. Apabila Anda mendambakan tanggapan percakapan yang lebih asertif dan dinamis, silakan lengkapi konfigurasi 'Pengaturan AI' dengan KUNCI API Gemini milik Anda pribadi.";
+        }
+
+        async function submitUserChatQuery() {
+            const inputField = document.getElementById('chat-input-field');
+            const promptStr = inputField.value.trim();
+            if (!promptStr) return;
+
+            // Render User bubble
+            renderChatBubble(promptStr, "msg-user");
+            inputField.value = "";
+
+            // Check crisis immediately locally
+            if (isLocalCrisis(promptStr)) {
+                // Crisis Warning Response
+                const alertReply = `🚨 *TINDAKAN KRISIS DARURAT:* Pertanyaan mengandung indikator krisis keselamatan jiwa atau keputusasaan berat.\n\nMohon amankan kondisi sekitar istri, dampingi dia penuh kedamaian, dan segera hubungi layanan darurat resmi nasional di: *Halo Kemenkes Sejiwa 119 Ext. 8* atau lari ke IGD rumah sakit terdekat. Mohon bantuannya demi keselamatan keluarga Anda.`;
+                setTimeout(() => {
+                    renderChatBubble(alertReply, "msg-assistant");
+                }, 400);
+                return;
+            }
+
+            // Decide Offline or AI Model query
+            if (aiConfig.enabled && aiConfig.key) {
+                renderChatLoaderBubble();
+                try {
+                    const aiReply = await fetchGeminiAPI(promptStr);
+                    removeChatLoader();
+                    renderChatBubble(aiReply, "msg-assistant");
+                } catch (err) {
+                    removeChatLoader();
+                    renderChatBubble(`⚠️ Gagal menghubungi AI: ${err.message}. Mengalihkan ke asisten offline.\n\n${getOfflineBotMessage(promptStr)}`, "msg-assistant");
+                }
+            } else {
+                // Provide Rule-based response
+                setTimeout(() => {
+                    renderChatBubble(getOfflineBotMessage(promptStr), "msg-assistant");
+                }, 500);
+            }
+        }
+
+        function renderChatBubble(text, senderClass) {
+            const body = document.getElementById('chat-scroller-node');
+            const bNode = document.createElement('div');
+            bNode.className = `chat-msg ${senderClass}`;
+            bNode.innerHTML = text.replace(/\n/g, "<br>");
+            body.appendChild(bNode);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function renderChatLoaderBubble() {
+            const body = document.getElementById('chat-scroller-node');
+            const loader = document.createElement('div');
+            loader.className = "chat-msg msg-assistant";
+            loader.id = "chat-loader-indicator";
+            loader.textContent = "Menghubungi AI Asisten Suami...";
+            body.appendChild(loader);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function removeChatLoader() {
+            const el = document.getElementById('chat-loader-indicator');
+            if (el) el.remove();
+        }
+
+        async function fetchGeminiAPI(prompt) {
+            // Standard fetch call to Google Generative Language Rest API
+            const key = aiConfig.key;
+            const modelName = 'gemini-1.5-flash'; // Universally supported REST API model name
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${key}`;
+
+            const systemInstruction = "Anda adalah asisten empati bernama \"Asisten Suami\" berbahasa Indonesia, yang bertugas mendampingi suami baru merawat istrinya dengan gejala postpartum depression (PPD). Jawablah secara hangat, merangkul, dan memberikan solusi praktis dalam maksimal 3 kalimat. Anda dilarang memberikan diagnosis klinis formal. Utamakan selalu keselamatan istri dan arahkan untuk konsultasi ke profesional (psikolog/psikiater/bidan/dokter kandung) jika keadaan tampak parah. Jangan menggunakan jargon medis rumit.";
+
+            // Format message context
+            const payload = {
+                contents: [
+                    {
+                        parts: [
+                            { text: prompt }
+                        ]
+                    }
+                ],
+                systemInstruction: {
+                    parts: [
+                        { text: systemInstruction }
+                    ]
+                }
+            };
+
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error("Gagal memperoleh respons. Pastikan API key Anda valid.");
+            }
+
+            const data = await response.json();
+            if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+                return data.candidates[0].content.parts[0].text;
+            }
+            throw new Error("Format respons tidak dikenal.");
+        }
+
+        // -----------------------------------------
+        // SETTINGS & STORAGE WIPING LOGIC
+        // -----------------------------------------
+        function initSettingsUI() {
+            const chkBtn = document.getElementById('ai-mode-active-chk');
+            const container = document.getElementById('ai-key-input-container');
+            const keyField = document.getElementById('frm-ai-key-field');
+
+            chkBtn.checked = aiConfig.enabled;
+            if (aiConfig.enabled) {
+                container.classList.remove('d-none');
+            } else {
+                container.classList.add('d-none');
+            }
+            keyField.value = aiConfig.key || "";
+        }
+
+        function onClickAIToggle() {
+            const chkBtn = document.getElementById('ai-mode-active-chk');
+            const container = document.getElementById('ai-key-input-container');
+            
+            aiConfig.enabled = chkBtn.checked;
+            localStorage.setItem(KEY_AI, JSON.stringify(aiConfig));
+
+            if (chkBtn.checked) {
+                container.classList.remove('d-none');
+                alert("Mode AI Pintar diaktifkan. Harap masukkan API key Anda agar asisten percakapan bekerja.");
+            } else {
+                container.classList.add('d-none');
+            }
+        }
+
+        function saveGeminiConfiguration() {
+            const keyField = document.getElementById('frm-ai-key-field');
+            const keyVal = keyField.value.trim();
+
+            if (!keyVal) {
+                alert("Mohon isi kunci dengan benar!");
+                return;
+            }
+
+            aiConfig.key = keyVal;
+            localStorage.setItem(KEY_AI, JSON.stringify(aiConfig));
+            alert("Google Gemini API Key tersimpan aman di gawai lokal Anda.");
+        }
+
+        function eraseDeviceDatabase() {
+            const confirmation = confirm("PERINGATAN: Anda akan menghapus data skrining EPDS, riwayat mood, checklist panduan, serta setelan API key dari HP secara permanen. Tindakan ini tidak dapat dibatalkan.\n\nApakah Anda yakin?");
+            if (confirmation) {
+                localStorage.clear();
+                epdsRecords = [];
+                moodRecords = [];
+                fatherMoodRecords = [];
+                aiConfig = { enabled: false, key: "" };
+                activeChecklist = {};
+                
+                // Refresh views
+                renderEPDSForm();
+                renderTailoredSupportGuidelines();
+                renderMoodTrackingChart();
+                renderFatherMoodTrackingChart();
+                updateDashboardSummary();
+                initSettingsUI();
+
+                const resCard = document.getElementById('epds-result-card');
+                resCard.classList.add('d-none');
+
+                alert("Seluruh database lokal berhasil dihapus bersih.");
+                navTo('beranda');
+            }
+        }
+    </script>
+</body>
+</html>
